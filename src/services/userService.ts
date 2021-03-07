@@ -1,11 +1,11 @@
-import {User} from '../models/User';
+import {User, UserModel} from '../models/User';
 
 class UserService {
     findUserByQuery(query: {[key:string]: string}) {
         return User.findOne(query);
     }
 
-    createUser(user: typeof User) {
+    createUser(user: UserModel) {
         return User.create(user)
     }
 

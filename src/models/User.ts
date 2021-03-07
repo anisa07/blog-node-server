@@ -1,6 +1,17 @@
 import mongoose, { Schema } from 'mongoose';
 
-const userSchema = new Schema({
+export type UserModel = mongoose.Document & {
+    name: string; 
+    email: string; 
+    password: string; 
+    type: string;
+    state: string;
+    bio: string;
+    activityId: string;
+    photo: string;
+  };  
+
+export const userSchema = new Schema({
     name: {
         type: String,
         required: true,
@@ -32,7 +43,7 @@ const userSchema = new Schema({
 },
     { timestamps: true });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model<UserModel>('User', userSchema);
 
 export {
     User
