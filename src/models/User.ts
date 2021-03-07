@@ -32,7 +32,7 @@ const userSchema = new Schema({
 },
     { timestamps: true });
 
-const User = mongoose.model('Comment', userSchema);
+const User = mongoose.model('User', userSchema);
 
 export {
     User
