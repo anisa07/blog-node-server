@@ -3,11 +3,12 @@ import express from 'express';
 import redisClient from '../dbs/redisDb';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { userService } from '../services/userService';
 import { saltService } from '../services/saltService';
 
 const generateToken = (email: string) => {
-    const secret = require('crypto').randomBytes(64).toString('hex');
+    const secret = crypto.randomBytes(64).toString('hex');
     return jwt.sign({email}, secret, { expiresIn: '2h' });
 };
 
@@ -48,9 +49,7 @@ class UserController {
                 token,
                 password: ''
             });
-            redisClient.set('test', 'token');
         } catch (e) {
-            console.log(e)
             return res.status(500).send({
                 type: 'ERROR',
                 message: 'Error occurs creating user'

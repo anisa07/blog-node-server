@@ -19,8 +19,8 @@ afterEach(async () => await dbHandler.clearDatabase());
  */
 afterAll(async () => await dbHandler.closeDatabase());
 
-describe('user ', () => {
-    it('can be created correctly', async () => {
+describe('user service', () => {
+    it('user can be created correctly', async () => {
         expect(async () => await userService.createUser(user as UserModel))
             .not
             .toThrow();

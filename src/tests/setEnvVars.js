@@ -1,0 +1,1 @@
+process.env.PWD_REGEXP = '[a-zA-Z\d]{4,}'
