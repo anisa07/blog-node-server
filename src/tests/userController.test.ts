@@ -1,6 +1,7 @@
 import UserController from '../controllers/userController';
 import express from 'express';
 
+jest.mock('ioredis')
 jest.mock('bcrypt')
 const bcryptMock = require('bcrypt');
 jest.mock('jsonwebtoken')
@@ -11,6 +12,9 @@ jest.mock('../services/userService');
 const userServiceMock = require('../services/userService');
 jest.mock('../services/saltService');
 const saltServiceMock = require('../services/saltService');
+jest.mock('../services/redisService');
+const redisServiceMock = require('../services/redisService');
+
 
 describe('user controller', () => {
     bcryptMock.genSalt = jest.fn().mockReturnValue(Promise.resolve('salt'));
@@ -20,7 +24,8 @@ describe('user controller', () => {
         toString: jest.fn().mockReturnValue('secret')
     });
     saltServiceMock.saltService.createSaltForUser = jest.fn().mockReturnValue(Promise.resolve());
-        
+    redisServiceMock.redisService.setItem = jest.fn().mockReturnValue(Promise.resolve());
+    
     it('signup', async () => {
         userServiceMock.userService.findUserByQuery = jest.fn().mockReturnValue(Promise.resolve(null));
         userServiceMock.userService.createUser = jest.fn().mockReturnValue(Promise.resolve({

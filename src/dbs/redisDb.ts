@@ -1,9 +1,9 @@
-import redis from 'redis';
+import Redis from 'ioredis';
 
-const redisClient = redis.createClient({
-    host: process.env.SESSION_DB_HOST,
-    port: process.env.SESSION_DB_PORT as unknown as number,
-    retry_strategy: () => 1000
-  });
+const redisClient = new Redis(process.env.REDIS_URL, {
+    connectTimeout: 10000,
+    db: 0,
+    family: 4
+})
 
-export default redisClient;
+export default redisClient

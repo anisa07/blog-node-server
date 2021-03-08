@@ -11,7 +11,7 @@ router.get('/user-info', (req, res) => {
 router.post('/login', userController.login);
 
 // // Logout
-// router.post('/logout', userController.logot);
+router.post('/logout', userController.logout);
 
 // Signup
 router.post('/signup', userController.signup);

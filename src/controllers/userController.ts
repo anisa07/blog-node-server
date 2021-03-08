@@ -1,11 +1,11 @@
 
 import express from 'express';
-import redisClient from '../dbs/redisDb';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { userService } from '../services/userService';
 import { saltService } from '../services/saltService';
+import { redisService } from '../services/redisService';
 
 const generateToken = (email: string) => {
     const secret = crypto.randomBytes(64).toString('hex');
@@ -43,7 +43,7 @@ class UserController {
             });
             await saltService.createSaltForUser(newUser._id, salt);
             const token = generateToken(email);
-            redisClient.set(newUser._id, token);
+            redisService.setItem(newUser._id, token);
             res.json({
                 ...req.body,
                 token,
@@ -79,7 +79,8 @@ class UserController {
 
         try {
             const token = generateToken(email);
-            redisClient.set(user._id, token);
+            await redisService.setItem(user._id, token);
+            
             res.json({
                 ...req.body,
                 token,
@@ -88,7 +89,29 @@ class UserController {
         } catch (e) {
             return res.status(500).send({
                 type: 'ERROR',
-                message: 'Error occurs creating user'
+                message: 'Error occurs during login'
+            });
+        }
+    }
+
+    async logout(req: express.Request, res: express.Response) {
+        const { email } = req.body;
+        const user = await userService.findUserByQuery({ email });
+
+        if (!user) {
+            return res.status(404).send({
+                type: 'ERROR',
+                message: 'User not found'
+            });
+        }
+
+        try {
+            await redisService.delItem(user._id);
+            res.status(200).send()
+        } catch (e) {
+            return res.status(500).send({
+                type: 'ERROR',
+                message: 'Error occurs during logout'
             });
         }
     }

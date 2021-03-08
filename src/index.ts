@@ -3,13 +3,17 @@ import cors from 'cors';
 import express from 'express';
 import userRouter from './routes/user';
 import connectDb from './dbs/mongoDb';
-import redisClient from './dbs/redisDb';
-
-const app = express();
+import redisClient from './dbs/redisDb'; 
 
 redisClient.on("error", (error) => {
     console.error(`Redis error: ${error}`);
 });
+
+redisClient.on("connect", () => {
+    console.log(`connect`);
+});
+
+const app = express();
 
 app.use(cors({
     origin: process.env.ORIGIN
