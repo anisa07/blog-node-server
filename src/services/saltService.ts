@@ -9,7 +9,9 @@ class Saltservice {
     }
 
     getSalt(userId: string) {
-
+        return Salt.findOne({
+            userId
+        })
     }
 
     deleteSlat(userId: string) {

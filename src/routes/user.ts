@@ -8,7 +8,7 @@ router.get('/user-info', (req, res) => {
   });
 
 // // Login
-// router.post('/login', userController.login);
+router.post('/login', userController.login);
 
 // // Logout
 // router.post('/logout', userController.logot);
