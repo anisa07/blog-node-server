@@ -1,1 +1,0 @@
-jest.mock('ioredis', () => jest.requireActual('redis-mock'));

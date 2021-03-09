@@ -21,9 +21,14 @@ afterAll(async () => await dbHandler.closeDatabase());
 
 describe('user service', () => {
     it('user can be created correctly', async () => {
-        expect(async () => await userService.createUser(user as UserModel))
-            .not
-            .toThrow();
+        const uBefore = await userService.findUserByQuery({email: "test@mailinator.com"});
+        expect(uBefore).toBeFalsy();
+        await userService.createUser(user as UserModel);
+        const uAfter = await userService.findUserByQuery({email: "test@mailinator.com"});
+        expect(uAfter).toBeTruthy();
+        expect(uAfter?.email).toBe(user.email);
+        expect(uAfter?.name).toBe(user.name);
+        expect(uAfter?.password).toBe(user.password);
     });
 });
 

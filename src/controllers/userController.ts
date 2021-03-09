@@ -15,8 +15,24 @@ const generateToken = (email: string) => {
 class UserController {
     async signup(req: express.Request, res: express.Response) {
         const passwordRegexp = new RegExp(process.env.PWD_REGEXP as string);
+        const emailRegexp = new RegExp(process.env.EMAIL_REGEXP as string);
         const password = req.body.password;
         const email = req.body.email;
+        const name = req.body.name || "";
+
+        if (!name || !name.trim()) {
+            return res.status(400).send({
+                type: 'ERROR',
+                message: 'Name is to short'
+            });
+        }
+
+        if (!email || !emailRegexp.test(email)) {
+            return res.status(400).send({
+                type: 'ERROR',
+                message: 'Email is incorrect'
+            });
+        }
 
         if (!password || !passwordRegexp.test(password)) {
             return res.status(400).send({
@@ -59,6 +75,14 @@ class UserController {
 
     async login(req: express.Request, res: express.Response) {
         const { password, email } = req.body;
+
+        if (!password || !password.trim() || !email || !email.trim()) {
+            return res.status(401).send({
+                type: 'ERROR',
+                message: 'Invalid data'
+            });
+        }
+
         const user = await userService.findUserByQuery({ email });
 
         if (!user) {
@@ -73,7 +97,7 @@ class UserController {
         if (!compareResult) {
             return res.status(401).send({
                 type: 'ERROR',
-                message: 'User not authorised'
+                message: 'Password or email is incorrect'
             });
         }
 
