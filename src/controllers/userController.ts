@@ -4,12 +4,12 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { userService } from '../services/userService';
-import { saltService } from '../services/saltService';
 import { redisService } from '../services/redisService';
 
-const generateToken = (email: string) => {
-    const secret = crypto.randomBytes(64).toString('hex');
-    return jwt.sign({ email }, secret, { expiresIn: '2h' });
+const generateToken = async (email: string, userId: string) => {
+    const salt = crypto.randomBytes(64).toString('hex');
+    await redisService.setItem(userId, salt);
+    return jwt.sign({ email, userId }, salt, { expiresIn: Date.now() + 7200 });
 };
 
 class UserController {
@@ -18,7 +18,7 @@ class UserController {
         const emailRegexp = new RegExp(process.env.EMAIL_REGEXP as string);
         const password = req.body.password;
         const email = req.body.email;
-        const name = req.body.name || "";
+        const name = req.body.name;
 
         if (!name || !name.trim()) {
             return res.status(400).send({
@@ -57,11 +57,10 @@ class UserController {
                 ...req.body,
                 password: encryptedPassword
             });
-            await saltService.createSaltForUser(newUser._id, salt);
-            const token = generateToken(email);
-            redisService.setItem(newUser._id, token);
+            const token = await generateToken(email, newUser._id);
             res.json({
                 ...req.body,
+                id: newUser._id,
                 token,
                 password: ''
             });
@@ -77,7 +76,7 @@ class UserController {
         const { password, email } = req.body;
 
         if (!password || !password.trim() || !email || !email.trim()) {
-            return res.status(401).send({
+            return res.status(400).send({
                 type: 'ERROR',
                 message: 'Invalid data'
             });
@@ -102,11 +101,10 @@ class UserController {
         }
 
         try {
-            const token = generateToken(email);
-            await redisService.setItem(user._id, token);
-            
+            const token = await generateToken(email, user._id);
             res.json({
                 ...req.body,
+                id: user._id,
                 token,
                 password: ''
             });
@@ -137,6 +135,41 @@ class UserController {
                 type: 'ERROR',
                 message: 'Error occurs during logout'
             });
+        }
+    }
+
+    async isAuth(req: express.Request, res: express.Response) {
+        const token = (req.headers.authorization || '').split(' ')[1];
+        const userId = req.headers.id;
+        if (!userId) {
+            return res.status(401).send({
+                type: 'ERROR',
+                message: 'Not authorised'
+            });
+        }
+        const salt = await redisService.getItem(userId as string);
+        if(!salt) {
+            return res.status(401).send({
+                type: 'ERROR',
+                message: 'Not authorised'
+            }); 
+        }
+        try {
+            const decodedToken = jwt.verify(token, salt) as {exp: number, userId: string};
+            if (decodedToken.exp > Date.now()) {
+                res.json({
+                    auth: true
+                });
+            }
+            return res.status(401).send({
+                type: 'ERROR',
+                message: 'Not authorised'
+            });
+        } catch (e) {
+            return res.status(401).send({
+                type: 'ERROR',
+                message: 'Not authorised'
+            }); 
         }
     }
 }

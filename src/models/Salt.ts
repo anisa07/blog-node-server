@@ -1,5 +1,10 @@
 import mongoose, { Schema } from 'mongoose';
 
+export type SaltModel = mongoose.Document & {
+    value: string; 
+    userId: string;
+  }; 
+
 const saltSchema = new Schema({
     value: {
         type: String,
@@ -10,7 +15,7 @@ const saltSchema = new Schema({
 },
     { timestamps: true });
 
-const Salt = mongoose.model('Salt', saltSchema);
+const Salt = mongoose.model<SaltModel>('Salt', saltSchema);
 
 export {
     Salt

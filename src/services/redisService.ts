@@ -2,7 +2,7 @@ import redisClient from '../dbs/redisDb';
 
 class RedisService {
     setItem(key: string, value: string){
-        return redisClient.set(key, value);
+        return redisClient.set(key, value, 'EX', 7200);
     }
 
     getItem(key: string){

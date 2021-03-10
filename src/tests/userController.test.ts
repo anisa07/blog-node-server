@@ -51,8 +51,7 @@ describe('user controller', () => {
         expect(bcryptMock.genSalt).toHaveBeenCalled();
         expect(bcryptMock.hash).toHaveBeenCalledWith(body.password, 'salt');
         expect(userServiceMock.userService.createUser).toHaveBeenCalledWith({...body, password: 'hash'});
-        expect(saltServiceMock.saltService.createSaltForUser).toHaveBeenCalledWith("newuserId", "salt");
-        expect(res.json).toHaveBeenCalledWith({...body, password: '', token: 'token'}); 
+        expect(res.json).toHaveBeenCalledWith({...body, password: '', token: 'token', id: 'newuserId'}); 
     });
 
     it('unsuccessful signup - short name', async () => {

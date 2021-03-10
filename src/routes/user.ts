@@ -16,8 +16,8 @@ router.post('/logout', userController.logout);
 // Signup
 router.post('/signup', userController.signup);
 
-// // IsAuth
-// router.get('/auth', userController.isAuth);
+// IsAuth
+router.get('/auth', userController.isAuth);
 
 // // forgot-password
 // router.post('/forgot-password', userController.forgotPassword);
