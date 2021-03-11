@@ -20,7 +20,7 @@ router.post('/signup', userController.signup);
 router.get('/auth', userController.isAuth);
 
 // // forgot-password
-// router.post('/forgot-password', userController.forgotPassword);
+router.post('/forgot-password', userController.forgotPassword);
 
 // // change-password
 // router.post('/change-password', userController.changePassword);

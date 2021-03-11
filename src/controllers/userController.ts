@@ -5,11 +5,16 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { userService } from '../services/userService';
 import { redisService } from '../services/redisService';
+import { sendEmail } from '../utils/sendEmail';
 
-const generateToken = async (email: string, userId: string) => {
+const DAY_IN_MILSEC = 86400000;
+const QUARTER_IN_MILSEC = 900000;
+
+const generateToken = async (email: string, userId: string, expiresIn?: number) => {
     const salt = crypto.randomBytes(64).toString('hex');
-    await redisService.setItem(userId, salt);
-    return jwt.sign({ email, userId }, salt, { expiresIn: Date.now() + 7200 });
+    const exp = expiresIn || DAY_IN_MILSEC;
+    await redisService.setItem(userId, salt, Math.round(exp/1000));
+    return jwt.sign({ email, userId }, salt, { expiresIn: (exp + Date.now())});
 };
 
 class UserController {
@@ -170,6 +175,29 @@ class UserController {
                 type: 'ERROR',
                 message: 'Not authorised'
             }); 
+        }
+    }
+
+    async forgotPassword(req: express.Request, res: express.Response) {
+        const {email} = req.body;
+        const user = await userService.findUserByQuery({ email });
+
+        if (!user) {
+            return res.status(404).send({
+                type: 'ERROR',
+                message: 'User does not exist'
+            });
+        }
+
+        const token = await generateToken(email, user.id, QUARTER_IN_MILSEC);
+        const link = `${process.env.CLIENT_URL}/password-reset?token=${token}&id=${user.id}`;
+        try {
+            await sendEmail(email, {name: user.name, link}, res);
+        } catch (error) {
+            return res.status(500).send({
+                type: 'ERROR',
+                message: 'Error sending email'
+            });
         }
     }
 }
