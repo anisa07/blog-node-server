@@ -6,21 +6,23 @@ import crypto from 'crypto';
 import { userService } from '../services/userService';
 import { redisService } from '../services/redisService';
 import { sendEmail } from '../utils/sendEmail';
+import { User } from '../models/User';
+import { decode } from 'querystring';
 
 const DAY_IN_MILSEC = 86400000;
 const QUARTER_IN_MILSEC = 900000;
+const passwordRegexp = new RegExp(process.env.PWD_REGEXP as string);
+const emailRegexp = new RegExp(process.env.EMAIL_REGEXP as string);
 
 const generateToken = async (email: string, userId: string, expiresIn?: number) => {
     const salt = crypto.randomBytes(64).toString('hex');
     const exp = expiresIn || DAY_IN_MILSEC;
     await redisService.setItem(userId, salt, Math.round(exp/1000));
-    return jwt.sign({ email, userId }, salt, { expiresIn: (exp + Date.now())});
+    return jwt.sign({ email, userId }, salt, { expiresIn: exp });
 };
 
 class UserController {
     async signup(req: express.Request, res: express.Response) {
-        const passwordRegexp = new RegExp(process.env.PWD_REGEXP as string);
-        const emailRegexp = new RegExp(process.env.EMAIL_REGEXP as string);
         const password = req.body.password;
         const email = req.body.email;
         const name = req.body.name;
@@ -55,7 +57,7 @@ class UserController {
             });
         }
 
-        const salt = await bcrypt.genSalt(11);
+        const salt = await bcrypt.genSalt(process.env.SALT_ROUNDS as unknown as number);
         const encryptedPassword = await bcrypt.hash(password, salt);
         try {
             const newUser = await userService.createUser({
@@ -198,6 +200,50 @@ class UserController {
                 type: 'ERROR',
                 message: 'Error sending email'
             });
+        }
+    }
+
+    async changePassword(req: express.Request, res: express.Response) {
+        const {id, token, password} = req.body;
+        const user = await userService.findUserByQuery({ _id: id });
+
+        if (!password || !passwordRegexp.test(password)) {
+            return res.status(400).send({
+                type: 'ERROR',
+                message: 'Password is too weak'
+            });
+        }
+
+        if (!user) {
+            return res.status(404).send({
+                type: 'ERROR',
+                message: 'User does not exist'
+            });
+        }
+
+        const salt = await redisService.getItem(id);
+        if(!salt) {
+            return res.status(401).send({
+                type: 'ERROR',
+                message: 'Not authorised'
+            }); 
+        }
+
+        try {
+            const decodedToken = jwt.verify(token, salt) as {exp: number, userId: string};
+            if(decodedToken.userId === id) {
+                const pwdSalt = await bcrypt.genSalt(Number(process.env.SALT_ROUNDS));
+                const encryptedPassword = await bcrypt.hash(password, pwdSalt);
+                user.password = encryptedPassword;
+                await userService.updateUser(user);
+                await redisService.delItem(user._id);
+                return res.status(200).send();
+            }
+        } catch (e) {
+            return res.status(401).send({
+                type: 'ERROR',
+                message: 'Not authorised'
+            }); 
         }
     }
 }

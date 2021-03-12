@@ -19,11 +19,11 @@ router.post('/signup', userController.signup);
 // IsAuth
 router.get('/auth', userController.isAuth);
 
-// // forgot-password
+// forgot-password
 router.post('/forgot-password', userController.forgotPassword);
 
-// // change-password
-// router.post('/change-password', userController.changePassword);
+// change-password
+router.post('/change-password', userController.changePassword);
 
 // user-info/:id (read, edit)
 // block-user/:id
