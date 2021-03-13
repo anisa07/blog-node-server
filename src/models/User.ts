@@ -4,12 +4,24 @@ export type UserModel = mongoose.Document & {
     name: string; 
     email: string; 
     password: string; 
-    type: string;
-    state: string;
+    type: USER_TYPE;
+    state: STATE;
     bio: string;
     activityId: string;
-    photo: string;
+    photo: any;
+    filename: string;
   };  
+
+export enum STATE {
+    ACTIVE = 'ACTIVE',
+    BLOCKED = 'BLOCKED',
+    DELETED = 'DELETED'
+}
+
+export enum USER_TYPE {
+    SUPER = 'SUPER',
+    USER = 'USER'
+}
 
 export const userSchema = new Schema({
     name: {
@@ -26,14 +38,17 @@ export const userSchema = new Schema({
     },
     type: {
         type: String,
-        default: 'user'
+        default: USER_TYPE.SUPER
     },
     state: {
         type: String,
-        default: 'active'
+        default: STATE.ACTIVE
     },
     bio: {
         type: String,
+    },
+    filename: {
+        type: String
     },
     photo: {
         data: Buffer,

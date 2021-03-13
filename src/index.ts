@@ -4,6 +4,7 @@ import express from 'express';
 import userRouter from './routes/user';
 import connectDb from './dbs/mongoDb';
 import redisClient from './dbs/redisDb'; 
+import mongoose, { Mongoose } from 'mongoose';
 
 redisClient.on("error", (error) => {
     console.error(`Redis error: ${error}`);
@@ -22,8 +23,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/', userRouter);
 
-connectDb().then(async () => {
+let gfs: any;
+connectDb().then(async (result: Mongoose) => {
+    if (result && result.connection && result.connection && result.connections[0].db) {
+        gfs = new mongoose.mongo.GridFSBucket(result.connections[0].db, {
+            bucketName: "uploads"
+          });
+    }
     app.listen(process.env.PORT, () =>
         console.log(`Example app listening on port ${process.env.PORT}!`),
     );
 });
+
+export {
+    gfs
+};

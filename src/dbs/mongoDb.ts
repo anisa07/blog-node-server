@@ -4,23 +4,15 @@ import multer from 'multer';
 import crypto from "crypto";
 import path from "path";
 
+const dbUrl = process.env.DATABASE_URL as string;
+
 const connectDb = () => {
-    return mongoose.connect(process.env.DATABASE_URL as string
-        , { useNewUrlParser: true, useUnifiedTopology: true });
+    return mongoose.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true });
 };
 
-// let gfs: any;
-// connectDb().then((result) => {
-//     if (result && result.connection && result.connection.db ) {
-//         gfs = new mongoose.mongo.GridFSBucket(result.connection.db, {
-//             bucketName: "uploads"
-//           });
-//     }
-// });
-
 const storage = new GridFsStorage({
-    url: process.env.DATABASE_URL as string,
-    file: (req, file) => {
+    url: dbUrl,
+    file: (_req, file) => {
       return new Promise((resolve, reject) => {
         crypto.randomBytes(16, (err, buf) => {
           if (err) {
@@ -40,6 +32,7 @@ const storage = new GridFsStorage({
 const upload = multer({
     storage
 });
+
 export {
     storage,
     upload
