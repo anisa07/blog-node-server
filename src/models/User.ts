@@ -38,7 +38,7 @@ export const userSchema = new Schema({
     },
     type: {
         type: String,
-        default: USER_TYPE.SUPER
+        default: USER_TYPE.USER
     },
     state: {
         type: String,

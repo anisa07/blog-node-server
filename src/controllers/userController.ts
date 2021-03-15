@@ -7,6 +7,7 @@ import { userService } from '../services/userService';
 import { redisService } from '../services/redisService';
 import { sendEmail } from '../utils/sendEmail';
 import { gfsService } from '../services/gfsService';
+import { STATE, USER_TYPE } from '../models/User';
 
 const DAY_IN_MILSEC = 86400000;
 const QUARTER_IN_MILSEC = 900000;
@@ -19,6 +20,11 @@ const generateToken = async (email: string, userId: string, expiresIn?: number) 
     await redisService.setItem(userId, salt, Math.round(exp / 1000));
     return jwt.sign({ email, userId }, salt, { expiresIn: exp });
 };
+
+const encryptPassword = async (password: string) => {
+    const salt = await bcrypt.genSalt(Number(process.env.SALT_ROUNDS));
+    return bcrypt.hash(password, salt);
+}
 
 class UserController {
     async signup(req: express.Request, res: express.Response) {
@@ -56,8 +62,8 @@ class UserController {
             });
         }
 
-        const salt = await bcrypt.genSalt(Number(process.env.SALT_ROUNDS));
-        const encryptedPassword = await bcrypt.hash(password, salt);
+        const encryptedPassword = await encryptPassword(password);
+
         try {
             const newUser = await userService.createUser({
                 ...req.body,
@@ -65,7 +71,8 @@ class UserController {
             });
             const token = await generateToken(email, newUser._id);
             res.json({
-                ...req.body,
+                name: req.body.name,
+                email: req.body.email,
                 id: newUser._id,
                 token,
                 password: ''
@@ -123,8 +130,8 @@ class UserController {
     }
 
     async logout(req: express.Request, res: express.Response) {
-        const { email } = req.body;
-        const user = await userService.findUserByQuery({ email });
+        const userId = req.headers.id as string;
+        const user = await userService.findUserByQuery({ _id: userId as string });
 
         if (!user) {
             return res.status(404).send({
@@ -134,8 +141,8 @@ class UserController {
         }
 
         try {
-            await redisService.delItem(user._id);
-            res.status(200).send()
+            await redisService.delItem(userId);
+            return res.status(200).send()
         } catch (e) {
             return res.status(500).send({
                 type: 'ERROR',
@@ -147,13 +154,25 @@ class UserController {
     async isAuth(req: express.Request, res: express.Response) {
         const token = (req.headers.authorization || '').split(' ')[1];
         const userId = req.headers.id;
+
         if (!userId) {
             return res.status(401).send({
                 type: 'ERROR',
                 message: 'Not authorised'
             });
         }
+
+        const user = await userService.findUserByQuery({ _id: userId as string });
+
+        if (!user) {
+            return res.status(404).send({
+                type: 'ERROR',
+                message: 'User not found'
+            });
+        }
+
         const salt = await redisService.getItem(userId as string);
+        
         if (!salt) {
             return res.status(401).send({
                 type: 'ERROR',
@@ -203,7 +222,8 @@ class UserController {
     }
 
     async changePassword(req: express.Request, res: express.Response) {
-        const { id, token, password } = req.body;
+        const { token, password } = req.body;
+        const id = req.headers.id as string;
         const user = await userService.findUserByQuery({ _id: id });
 
         if (!password || !passwordRegexp.test(password)) {
@@ -231,9 +251,7 @@ class UserController {
         try {
             const decodedToken = jwt.verify(token, salt) as { exp: number, userId: string };
             if (decodedToken.userId === id) {
-                const pwdSalt = await bcrypt.genSalt(Number(process.env.SALT_ROUNDS));
-                const encryptedPassword = await bcrypt.hash(password, pwdSalt);
-                user.password = encryptedPassword;
+                user.password = await encryptPassword(password);
                 await user.save();
                 await redisService.delItem(user._id);
                 return res.status(200).send();
@@ -298,6 +316,45 @@ class UserController {
             user.filename = "";
             user.save();
         }
+        return res.status(200).send();
+    }
+
+    async manageUserData(req: express.Request, res: express.Response) {
+        const {state, bio, removePhoto, filename, id} = req.body;
+        const userIdToChange = id;
+        const superUserId = req.headers.id;
+        const superUser = await userService.findUserByQuery({ _id: superUserId as string });
+        const userToChange = await userService.findUserByQuery({ _id: userIdToChange as string });
+        if (!userToChange) {
+            return res.status(404).send({
+                type: 'ERROR',
+                message: 'User not found'
+            });
+        }
+        
+        if (!superUser || superUser.type.toUpperCase() !== USER_TYPE.SUPER
+        || userToChange.type === USER_TYPE.SUPER || userIdToChange === superUserId) {
+            return res.status(401).send({
+                type: 'ERROR',
+                message: 'Not authorised'
+            });
+        }
+
+        if (removePhoto) {
+            await gfsService.deleteItem(filename,res)
+            userToChange.filename = "";
+        }
+
+        if (bio && bio.trim()) {
+            userToChange.bio = bio;
+        }
+
+        if (state && Object.values(STATE).includes(state)) {
+            userToChange.state = state; 
+        }
+
+        userToChange.save();
+
         return res.status(200).send();
     }
 }
