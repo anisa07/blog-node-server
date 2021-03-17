@@ -2,6 +2,7 @@ import 'dotenv/config';
 import cors from 'cors';
 import express from 'express';
 import userRouter from './routes/user';
+import postRouter from './routes/posts';
 import connectDb from './dbs/mongoDb';
 import redisClient from './dbs/redisDb'; 
 import mongoose, { Mongoose } from 'mongoose';
@@ -22,6 +23,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/', userRouter);
+app.use('/post', postRouter)
 
 let gfs: any;
 connectDb().then(async (result: Mongoose) => {

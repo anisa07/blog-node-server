@@ -1,6 +1,22 @@
 import mongoose, { Schema } from 'mongoose';
 
+export type PostModel = mongoose.Document & {
+    theme: string[],
+    title: string,
+    text: string,
+    image: any,
+    labelIds: string,
+    commentIds: string,
+    authorId: string,
+    filename: string
+  };  
+
+
 const postSchema = new Schema({
+    theme: [{
+        type: String,
+        required: true,
+    }],
     title: {
         type: String,
         required: true,
@@ -12,6 +28,9 @@ const postSchema = new Schema({
     image: {
         data: Buffer,
         contentType: String
+    },
+    filename: {
+        type: String,
     },
     authorId: { type: Schema.Types.ObjectId, ref: 'User' },
     commentIds: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],

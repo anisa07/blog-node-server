@@ -15,7 +15,7 @@ const connection = {
 
 const transporter = nodemailer.createTransport(connection);
 
-export const sendEmail = async (email: string, payload: any, res: express.Response) => {
+export const sendEmail = (email: string, payload: any, res: express.Response) => {
     try {
         const source = fs.readFileSync(path.join(__dirname, './templates/requestresetPassword.handlebars'), "utf8");
         const compiledTemplate = handlebars.compile(source);
