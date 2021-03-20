@@ -30,16 +30,16 @@ class PostsController {
             });
         }
 
-        const labelIds = [];
-        const createdLabels = [];
+        const labelIds: string[] = [];
+        const createdLabels: string[] = [];
 
-        for (let label of labels) {
+        for await (let label of labels) {
             if (label && label.trim()) {
                 const l = await labelsService.findLabelBy({ name: label });
-                if (l) {
+                if (l && !labelIds.includes(l._id) && !createdLabels.includes(label)) {
                     createdLabels.push(label);
                     labelIds.push(l._id);
-                } else {
+                } else if (!l && !createdLabels.includes(label)) {
                     const name = label.toLowerCase();
                     const newLabel = {
                         name
