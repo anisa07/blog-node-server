@@ -6,11 +6,11 @@ import { auth } from '../utils/authMiddleware';
 
 const router = Router(); 
 
-router.put('/:id', auth, active, upload.single('photo'), postsController.updatePost);
+router.put('/:id', auth, active, upload.single('image'), postsController.updatePost);
 
 router.delete('/:id', auth, active, postsController.deletePost);
 
-router.post('/', auth, active, upload.single('photo'), postsController.createPost);
+router.post('/', auth, active, upload.single('image'), postsController.createPost);
 
 router.get('/', postsController.readPosts);
 

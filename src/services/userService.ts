@@ -12,7 +12,6 @@ class UserService {
     updateUser(user: UserModel) {
         return User.findByIdAndUpdate(user._id, user);
     }
-
 }
 
 const userService = new UserService();
