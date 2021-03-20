@@ -12,9 +12,10 @@ class PostsController {
 
     async createPost(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
-        const filename = req.file.filename;
+        const filename = req.file?.filename || '';
         const { labels, title, text, } = req.body;
         const user = await userService.findUserByQuery({ _id: userId as string });
+        const parsedLabels: string[] = labels ? labels.split(', ') : [];
 
         if (!user) {
             return res.status(404).send({
@@ -23,7 +24,7 @@ class PostsController {
             });
         }
 
-        if (!labels || labels.length === 0 || !title || !title.trim() || !text || !text.trim()) {
+        if (parsedLabels.length === 0 || !title || !title.trim() || !text || !text.trim()) {
             return res.status(400).send({
                 type: 'ERROR',
                 message: 'Invalid post data'
@@ -33,7 +34,7 @@ class PostsController {
         const labelIds: string[] = [];
         const createdLabels: string[] = [];
 
-        for await (let label of labels) {
+        for await (let label of parsedLabels) {
             if (label && label.trim()) {
                 const l = await labelsService.findLabelBy({ name: label });
                 if (l && !labelIds.includes(l._id) && !createdLabels.includes(label)) {
@@ -102,7 +103,7 @@ class PostsController {
         }
 
         if (postLabels && postLabels.length > 0) {
-            for (let label of postLabels) {
+            for await (let label of postLabels) {
                 if (label && label.trim()) {
                     const l = await labelsService.findLabelBy({ name: label });
                     if (l) {
