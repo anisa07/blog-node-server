@@ -1,5 +1,10 @@
 import mongoose, {Schema} from 'mongoose';
 
+export type CommentModel = mongoose.Document & {
+  text: string,
+  userId: string
+}
+
 const commentSchema = new Schema({
    text: {
     type: String,

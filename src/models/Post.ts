@@ -30,7 +30,7 @@ const postSchema = new Schema({
     authorId: { type: Schema.Types.ObjectId, ref: 'User' },
     commentIds: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
     labelIds: [{ type: Schema.Types.ObjectId, ref: 'Label' }],
-    // like: [{ type: Schema.Types.ObjectId, ref: 'Like' }]
+    like: [{ type: Schema.Types.ObjectId, ref: 'Like' }]
 },
     { timestamps: true });
 

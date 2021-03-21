@@ -8,7 +8,7 @@ class LabelController {
         if (!name || !name.trim()) {
             return res.status(400).send({
                 type: 'ERROR',
-                message: 'Invalid post data'
+                message: 'Invalid label data'
             });
         }
 
@@ -28,12 +28,12 @@ class LabelController {
 
     async updateLabel(req: express.Request, res: express.Response) {
         const name = req.body.name as string;
-        const labelId = req.headers.id as string;
+        const labelId = req.params.id as string;
 
         if (!name || !name.trim()) {
             return res.status(400).send({
                 type: 'ERROR',
-                message: 'Invalid post data'
+                message: 'Invalid label data'
             });
         }
 
@@ -57,7 +57,7 @@ class LabelController {
     }
 
     async deleteLabel(req: express.Request, res: express.Response) {
-        const labelId = req.headers.id as string;
+        const labelId = req.params.id as string;
         return labelService.deleteLabel({_id: labelId});
     }
 }
