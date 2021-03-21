@@ -1,6 +1,10 @@
 import {Label, LabelModel} from '../models/Label';
 
 class LabelsService {
+    getAllLabels() {
+        return Label.find({});
+    }
+
     findLabelBy(query: {[key:string]: string}) {
         return Label.findOne(query);
     }

@@ -16,4 +16,6 @@ router.get('/', postsController.readPosts);
 
 router.get('/:id', postsController.readPost);
 
+router.delete('/delete-post-image:id', auth, active, postsController.deletePostImage);
+
 export default router;
