@@ -22,7 +22,7 @@ class PostService {
     }
 }
 
-const postsService = new PostService();
+const postService = new PostService();
 export {
-    postsService
+    postService
 }

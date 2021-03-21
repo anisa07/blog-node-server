@@ -1,6 +1,6 @@
 import {Label, LabelModel} from '../models/Label';
 
-class LabelsService {
+class LabelService {
     getAllLabels() {
         return Label.find({});
     }
@@ -22,8 +22,8 @@ class LabelsService {
     }
 }
 
-const labelsService = new LabelsService();
+const labelService = new LabelService();
 
 export {
-    labelsService
+    labelService
 }

@@ -1,16 +1,16 @@
 import express from 'express';
 import { userService } from '../services/userService';
-import { labelsService } from '../services/labelService';
+import { labelService } from '../services/labelService';
 import { PostModel } from '../models/Post';
-import { postsService } from '../services/postService';
+import { postService } from '../services/postService';
 import { gfsService } from '../services/gfsService';
 import { LabelModel } from '../models/Label';
 import { UserModel } from '../models/User';
 
-class PostsController {
+class PostController {
     async deletePostImage(req: express.Request, res: express.Response) {
         const postId = req.params.id;
-        const post = await postsService.findPostBy({ _id: postId }) as PostModel;
+        const post = await postService.findPostBy({ _id: postId }) as PostModel;
         if (post && post.filename) {
             await gfsService.deleteItem(post.filename, res);
             post.filename = "";
@@ -32,7 +32,7 @@ class PostsController {
         const user = await userService.findUserByQuery({ _id: userId as string });
         const parsedLabels: string[] = labels ? labels.split(', ') : [];
         const parsedComments: string[] = comments ? comments.split(', ') : [];
-        const post = await postsService.findPostBy({ _id: postId }) as PostModel;
+        const post = await postService.findPostBy({ _id: postId }) as PostModel;
 
         if (!post) {
             return res.status(404).send({
@@ -70,7 +70,7 @@ class PostsController {
         } as unknown as PostModel;
 
         try {
-            await postsService.updatePost(postId, updatePost);
+            await postService.updatePost(postId, updatePost);
 
             return res.status(200).send({
                 id: postId,
@@ -90,7 +90,7 @@ class PostsController {
     async deletePost(req: express.Request, res: express.Response) {
         const postId: string = req.params.id as string;
         if (postId) {
-            const post = await postsService.deletePost(postId);
+            const post = await postService.deletePost(postId);
             res.status(200).send({
                 post
             })
@@ -122,7 +122,7 @@ class PostsController {
 
         for await (let label of parsedLabelsIds) {
             if (label && label.trim()) {
-                const l = await labelsService.findLabelBy({ _id: label });
+                const l = await labelService.findLabelBy({ _id: label });
                 if (!l) {
                     return res.status(404).send({
                         type: 'ERROR',
@@ -142,7 +142,7 @@ class PostsController {
         } as unknown as PostModel;
 
         try {
-            const createdPost = await postsService.createPost(newPost);
+            const createdPost = await postService.createPost(newPost);
 
             return res.status(200).send({
                 id: createdPost._id,
@@ -162,10 +162,10 @@ class PostsController {
         const postId: string = req.params.id as string;
         const labels: string[] = [];
          if (postId) {
-            const post = await postsService.findPostBy({ _id: postId }) as PostModel;
+            const post = await postService.findPostBy({ _id: postId }) as PostModel;
             const user = await userService.findUserByQuery({ _id: post.authorId }) as UserModel;
             for await (let labelId of post.labelIds) {
-                const l = await labelsService.findLabelBy({ _id: labelId }) as LabelModel;
+                const l = await labelService.findLabelBy({ _id: labelId }) as LabelModel;
                 if (l) {
                     labels.push(l.name)
                 }
@@ -195,7 +195,7 @@ class PostsController {
         if (postLabels && postLabels.length > 0) {
             for await (let label of postLabels) {
                 if (label && label.trim()) {
-                    const l = await labelsService.findLabelBy({ name: label });
+                    const l = await labelService.findLabelBy({ name: label });
                     if (l) {
                         labelsId.push(l._id);
                     }
@@ -221,7 +221,7 @@ class PostsController {
             searchQuery.authorId = authorId;
         }
 
-        const posts = await postsService.findPostsBy(searchQuery)
+        const posts = await postService.findPostsBy(searchQuery)
             .limit(Number(size) || 10)
             .sort('-createdAt');
         // console.log(posts);
@@ -233,6 +233,6 @@ class PostsController {
     }
 }
 
-const postsController = new PostsController();
+const postController = new PostController();
 
-export default postsController;
+export default postController;
