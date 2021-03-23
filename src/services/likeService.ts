@@ -3,7 +3,7 @@ import {Like, LikeModel} from '../models/Like';
 
 class LikeService {
     findPostLikes(query: {[key:string]: string}){
-        return Label.find(query)
+        return Like.find(query)
     }
     
     saveLike(like: LikeModel) {

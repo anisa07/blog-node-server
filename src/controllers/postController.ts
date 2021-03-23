@@ -3,9 +3,62 @@ import { userService } from '../services/userService';
 import { labelService } from '../services/labelService';
 import { PostModel } from '../models/Post';
 import { postService } from '../services/postService';
+import { commentService } from '../services/commentService';
+import { likeService } from '../services/likeService';
 import { gfsService } from '../services/gfsService';
 import { LabelModel } from '../models/Label';
 import { UserModel } from '../models/User';
+import { CommentModel } from '../models/Comment';
+import { LikeModel } from '../models/Like';
+
+const gatherPostData = async (post: PostModel) => {
+    const labels: {[key: string]: string}[] = [];
+    const comments: {[key: string]: string}[] = [];
+
+    if (post) {
+        const user = await userService.findUserByQuery({ _id: post.authorId }) as UserModel;
+        if (!user) {
+            return null;
+        }
+
+        for (let labelId of post.labelIds) {
+            const l = await labelService.findLabelBy({ _id: labelId }) as LabelModel;
+            if (l) {
+                labels.push({
+                    name: l.name,
+                    id: l._id
+                })
+            }
+        }
+
+        for (let commentIds of post.commentIds) {
+            const comment = await commentService.findCommentBy({_id: commentIds}) as CommentModel;
+            const user = await userService.findUserByQuery({_id: comment.userId});
+            if (comment && user) {
+                comments.push({_id: commentIds, text: comment.text, userId: comment.userId, user: user?.name || ''});
+            } 
+        }
+
+        const likes = await likeService.findPostLikes({postId: post._id}) as LikeModel[];
+        let likesValue = 0;
+        if (likes) {
+            for (let like of likes) {
+                likesValue += like.value;
+            }
+        }
+
+        return {
+            authorId: post.authorId,
+            author: user.name,
+            labels,
+            comments,
+            likesValue,
+            title: post.title,
+            text: post.text,
+            filename: post.filename, 
+        }
+    }
+}
 
 class PostController {
     async deletePostImage(req: express.Request, res: express.Response) {
@@ -28,10 +81,10 @@ class PostController {
         const postId: string = req.params.id as string;
         const userId = req.headers.id as string;
         const filename = req.file?.filename || '';
-        const { labels, title, text, comments } = req.body;
+        const { labelIds, title, text, commentIds } = req.body;
         const user = await userService.findUserByQuery({ _id: userId as string });
-        const parsedLabels: string[] = labels ? labels.split(', ') : [];
-        const parsedComments: string[] = comments ? comments.split(', ') : [];
+        const parsedLabels: string[] = labelIds ? labelIds.split(', ') : [];
+        const parsedComments: string[] = commentIds ? commentIds.split(', ') : [];
         const post = await postService.findPostBy({ _id: postId }) as PostModel;
 
         if (!post) {
@@ -55,7 +108,7 @@ class PostController {
             });
         }
 
-        const oldFile = post.filename;
+        const oldFile = post.filename || '';
         if (filename && oldFile) {
             await gfsService.deleteItem(oldFile, res, filename);
         }
@@ -71,12 +124,10 @@ class PostController {
 
         try {
             await postService.updatePost(postId, updatePost);
-
+            const updatedPost = await postService.findPostBy({ _id: postId }) as PostModel;
+            const postData = await gatherPostData(updatedPost);
             return res.status(200).send({
-                id: postId,
-                filename,
-                title,
-                text
+                post: postData
             })
         } catch (e) {
             return res.status(500).send({
@@ -90,12 +141,17 @@ class PostController {
     async deletePost(req: express.Request, res: express.Response) {
         const postId: string = req.params.id as string;
         if (postId) {
-            const post = await postService.deletePost(postId);
-            res.status(200).send({
-                post
-            })
+            const post = await postService.findPostBy({ _id: postId }) as PostModel;
+            if (post && post.filename) {
+                await gfsService.deleteItem(post.filename, res);
+            }
+            await postService.deletePost(postId);
+            res.status(200).send()
         } else {
-            res.status(200).send(null);
+            res.status(400).send({
+                type: 'ERROR',
+                message: 'Post id is required'
+            });
         }
     }
 
@@ -120,7 +176,7 @@ class PostController {
             });
         }
 
-        for await (let label of parsedLabelsIds) {
+        for (let label of parsedLabelsIds) {
             if (label && label.trim()) {
                 const l = await labelService.findLabelBy({ _id: label });
                 if (!l) {
@@ -138,17 +194,16 @@ class PostController {
             title,
             text,
             labelIds: parsedLabelsIds,
-            commentIds: [],
+            commentIds: [], 
+            likeIds: []
         } as unknown as PostModel;
 
         try {
-            const createdPost = await postService.createPost(newPost);
+            const createdPost = await postService.createPost(newPost) as PostModel;
+            const postData = await gatherPostData(createdPost);
 
             return res.status(200).send({
-                id: createdPost._id,
-                filename,
-                title,
-                text
+                post: postData
             })
         } catch (e) {
             return res.status(500).send({
@@ -160,75 +215,67 @@ class PostController {
 
     async readPost(req: express.Request, res: express.Response) {
         const postId: string = req.params.id as string;
-        const labels: string[] = [];
-         if (postId) {
-            const post = await postService.findPostBy({ _id: postId }) as PostModel;
-            const user = await userService.findUserByQuery({ _id: post.authorId }) as UserModel;
-            for await (let labelId of post.labelIds) {
-                const l = await labelService.findLabelBy({ _id: labelId }) as LabelModel;
-                if (l) {
-                    labels.push(l.name)
-                }
-            }
+        if (!postId) {
+            return res.status(400).send({
+                type: 'ERROR',
+                message: 'Invalid post id'
+            });
+        }
 
-            res.status(200).send({
-                ...post,
-                author: user.name,
-                labels,
-                //comments
-            })
+        const post = await postService.findPostBy({ _id: postId }) as PostModel;
+        const postData = await gatherPostData(post);
+        if (!post) {
+            return res.status(404).send({
+                type: 'ERROR',
+                message: 'Post not found'
+            });
         } else {
-            res.status(200).send(null);
+            return res.status(200).send({
+                post: postData
+            })
         }
     }
 
     async readPosts(req: express.Request, res: express.Response) {
-        const { createdAt, size, labels, authorId } = req.query;
+        const { createdAt, size, labelIds, authorId } = req.query;
         const searchQuery: any = {}
-        const labelsId: string[] = [];
-        const postLabels = labels as string[];
+        const parsedLabelsIds: string[] = labelIds ? (labelIds as string).split(',') : [];
+        const postsData: any[] = [];
 
         if (createdAt) {
             searchQuery.createdAt = { $lte: createdAt };
         }
 
-        if (postLabels && postLabels.length > 0) {
-            for await (let label of postLabels) {
-                if (label && label.trim()) {
-                    const l = await labelService.findLabelBy({ name: label });
-                    if (l) {
-                        labelsId.push(l._id);
-                    }
-                }
-            }
-            if (labelsId.length === 0) {
-                res.status(200).send({
-                    posts: []
-                })
-            }
-            searchQuery.labelsId = labelsId;
+        if (parsedLabelsIds && parsedLabelsIds.length > 0) {
+            searchQuery.labelsId = parsedLabelsIds;
         }
 
         if (authorId) {
             const user = await userService.findUserByQuery({ _id: authorId as string });
-
             if (!user) {
                 res.status(200).send({
                     posts: []
                 })
             }
-
             searchQuery.authorId = authorId;
         }
 
-        const posts = await postService.findPostsBy(searchQuery)
+        const posts = await postService.findPostsBy(searchQuery) 
             .limit(Number(size) || 10)
-            .sort('-createdAt');
-        // console.log(posts);
-        // console.log('searchQuery', searchQuery);
-        // console.log(req.query)
+            .sort('-createdAt') as PostModel[];
+        
+        for (let p of posts) {
+            const postData = await gatherPostData(p);
+            if (postsData) {
+                postsData.push(postData);
+            }
+        }    
+
+    //     // console.log(posts);
+    //     // console.log('searchQuery', searchQuery);
+    //     // console.log(req.query)
         res.status(200).send({
-            posts: posts || []
+            posts: postsData
         })
     }
 }
