@@ -1,5 +1,11 @@
 import mongoose, { Schema } from 'mongoose';
 
+export type LikeModel = mongoose.Document & {
+  value: number,
+  userId: string,
+  postId: string
+};  
+
 const likeSchema = new Schema({
   value: {
     type: Number,

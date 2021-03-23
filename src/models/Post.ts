@@ -10,7 +10,6 @@ export type PostModel = mongoose.Document & {
     filename: string
   };  
 
-
 const postSchema = new Schema({
     title: {
         type: String,
