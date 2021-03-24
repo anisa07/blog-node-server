@@ -202,6 +202,16 @@ class PostController {
             const createdPost = await postService.createPost(newPost) as PostModel;
             const postData = await gatherPostData(createdPost);
 
+            if (user.followersIds && user.followersIds.length > 0) {
+                for (let followerId of user.followersIds) {
+                    const follower = await userService.findUserByQuery({_id: followerId}) as unknown as UserModel;
+                    const news = [...follower.newPostToReadIds];
+                    news.push(createdPost._id);
+                    follower.newPostToReadIds = news;
+                    await userService.updateUser(follower);
+                }
+            }
+
             return res.status(200).send({
                 post: postData
             })

@@ -296,8 +296,8 @@ class UserController {
                 bio: user.bio,
                 filename: user.filename,
                 email: user.email,
-                name: user.name
-                // TODO other things later after posts and followers .etc
+                name: user.name,
+                newPostToRead: user.newPostToReadIds || []
             });
         }
     }
