@@ -13,8 +13,8 @@ class CommentService {
         return Comment.findOneAndDelete(query);
     }
 
-    updateComment(id: string, userId: string, c: CommentModel) {
-        return Comment.updateOne({_id: id, userId}, c)
+    updateComment(id: string, userId: string, postId: string, c: CommentModel) {
+        return Comment.updateOne({_id: id, userId, postId}, c)
     }
 }
 

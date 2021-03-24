@@ -5,7 +5,9 @@ import { CommentModel } from '../models/Comment';
 class CommentController {
     async createComment(req: express.Request, res: express.Response) {
         const text = req.body.text as string;
+        const postId = req.body.postId as string;
         const userId = req.headers.id as string;
+
         if (!text || !text.trim()) {
             return res.status(400).send({
                 type: 'ERROR',
@@ -14,11 +16,12 @@ class CommentController {
         }
 
         try {
-            const comment = await commentService.createComment({text, userId} as CommentModel);
+            const comment = await commentService.createComment({text, userId, postId} as CommentModel);
             return res.status(200).send({
                 id: comment._id,
                 text,
-                userId
+                userId, 
+                postId
             })
         } catch (e) {
             return res.status(500).send({
@@ -30,6 +33,7 @@ class CommentController {
 
     async updateComment(req: express.Request, res: express.Response) {
         const text = req.body.text as string;
+        const postId = req.body.postId as string;
         const userId = req.headers.id as string;
         const commentId = req.params.id as string;
 
@@ -41,10 +45,12 @@ class CommentController {
         }
 
         try {
-            await commentService.updateComment(commentId, userId, {text} as CommentModel);
+            await commentService.updateComment(commentId, userId, postId, {text} as CommentModel);
             return res.status(200).send({
                 id: commentId,
-                text
+                text,
+                postId,
+                userId
             })
         } catch (e) {
             return res.status(500).send({
