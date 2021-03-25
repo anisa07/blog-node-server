@@ -60,6 +60,9 @@ class LabelController {
         const labelId = req.params.id as string;
         return labelService.deleteLabel({_id: labelId});
     }
+
+    // get label for post
+    // get label for user
 }
 
 const labelController = new LabelController();

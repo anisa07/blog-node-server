@@ -8,11 +8,9 @@ import { gfsService } from '../services/gfsService';
 import { UserModel } from '../models/User';
 import { LikeModel } from '../models/Like';
 import { labelToPostService } from '../services/labeToPostService';
+import { followerFollowService } from '../services/followFollowerService';
 
 const gatherPostData = async (post: PostModel) => {
-    const labels: {[key: string]: string}[] = [];
-    const comments: {[key: string]: string}[] = [];
-
     if (post) {
         const user = await userService.findUserByQuery({ _id: post.author }) as UserModel;
         const labelsPost = await labelToPostService.findPostLabels(post._id).populate({
@@ -37,13 +35,11 @@ const gatherPostData = async (post: PostModel) => {
             }
         }
 
-        console.log(labelsPost);
-        console.log(commentsPost)
         return {
             authorId: post.author,
             author: user.name,
-            labels,
-            comments,
+            labels: labelsPost,
+            comments: commentsPost,
             likesValue,
             title: post.title,
             text: post.text,
@@ -236,6 +232,34 @@ class PostController {
             }
         }    
 
+        res.status(200).send({
+            posts: postsData
+        })
+    }
+
+    async showFollowPosts(req: express.Request, res: express.Response) {
+        const userId = req.headers.id as string;
+        const user = await userService.findUserByQuery({ _id: userId as string }) as UserModel;
+        const postsData: any[] = [];
+
+        if (!user) {
+            return res.status(404).send({
+                type: 'ERROR',
+                message: 'User not found'
+            });
+        }
+
+        const lastReviewDate = user.lastReviewDate;
+        const followUsers = await followerFollowService.findFollow(userId);
+        for (let follow of followUsers) {
+            const followPosts = await postService.findPostsBy({author: follow, "createdAt": {
+                $gte: lastReviewDate
+            }}) as PostModel[];
+            for (let followPost of followPosts) {
+                const postData = await gatherPostData(followPost);
+                postsData.push(postData);
+            }
+        }
         res.status(200).send({
             posts: postsData
         })

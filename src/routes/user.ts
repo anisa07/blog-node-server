@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import postController from '../controllers/postController';
 import userController from '../controllers/userController';
 import { upload } from '../dbs/mongoDb';
 import { active } from '../utils/activeMiddleware';
@@ -32,5 +33,9 @@ router.delete('/user-photo/:filename', auth, active, userController.deletePhoto)
 
 // manage-user
 router.post('/manage-user', auth, active, userController.manageUserData);
+
+router.post('/follow', auth, active, userController.followUser);
+router.delete('/follow/:id', auth, active, userController.unFollowUser);
+router.get('/follow/posts', auth, active, postController.showFollowPosts);
 
 export default router;

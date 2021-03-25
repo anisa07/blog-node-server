@@ -8,6 +8,8 @@ import { redisService } from '../services/redisService';
 import { sendEmail } from '../utils/sendEmail';
 import { gfsService } from '../services/gfsService';
 import { STATE, UserModel, USER_TYPE } from '../models/User';
+import { followerFollowService } from '../services/followFollowerService';
+import { FollowerFollowModel } from '../models/FollowerFollow';
 
 const DAY_IN_MILSEC = 86400000;
 const QUARTER_IN_MILSEC = 900000;
@@ -354,6 +356,30 @@ class UserController {
 
         userToChange.save();
 
+        return res.status(200).send();
+    }
+
+    async followUser(req: express.Request, res: express.Response) {
+        const userId = req.headers.id as string;
+        const {follow} = req.body;
+        const userToFollow = await userService.findUserByQuery({_id: follow});
+
+        if (!userToFollow || userToFollow.state !== STATE.ACTIVE) {
+            return res.status(400).send({
+                type: 'ERROR',
+                message: 'Impossible to follow this user'
+            });
+        }
+
+        await followerFollowService.follow({follow, follower: userId} as FollowerFollowModel);
+        return res.status(200).send();
+    }
+
+    async unFollowUser(req: express.Request, res: express.Response) {
+        const userId = req.headers.id as string;
+        const follow = req.params.id;
+        
+        await followerFollowService.unfollow(userId, follow);
         return res.status(200).send();
     }
 }
