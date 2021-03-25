@@ -1,4 +1,3 @@
-import { Label } from '../models/Label';
 import {Like, LikeModel} from '../models/Like';
 
 class LikeService {

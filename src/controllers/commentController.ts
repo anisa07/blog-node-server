@@ -16,7 +16,7 @@ class CommentController {
         }
 
         try {
-            const comment = await commentService.createComment({text, userId, postId} as CommentModel);
+            const comment = await commentService.createComment({text, user: userId, post: postId} as CommentModel);
             return res.status(200).send({
                 id: comment._id,
                 text,
@@ -64,7 +64,7 @@ class CommentController {
     async readComment(req: express.Request, res: express.Response){
         const userId = req.headers.id as string;
         const commentId = req.params.id as string;
-        const comment = await commentService.findCommentBy({_id: commentId, userId});
+        const comment = await commentService.findCommentBy({_id: commentId, user: userId});
 
         if (!comment) {
             return res.status(404).send({
@@ -82,7 +82,7 @@ class CommentController {
         const commentId = req.params.id as string;
         const userId = req.headers.id as string;
 
-        return commentService.deleteComment({_id: commentId, userId});
+        return commentService.deleteComment({_id: commentId, user: userId});
     }
 }
 

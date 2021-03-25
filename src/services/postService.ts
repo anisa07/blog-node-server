@@ -1,7 +1,7 @@
 import {Post, PostModel} from '../models/Post';
 
 class PostService {
-    findPostsBy(query: {[key:string]: string}) {
+    findPostsBy(query: {[key:string]: any}) {
         return Post.find(query);
     }
 

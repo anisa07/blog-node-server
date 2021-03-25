@@ -7,12 +7,9 @@ export type UserModel = mongoose.Document & {
     type: USER_TYPE;
     state: STATE;
     bio: string;
-    activityId: string;
     photo: any;
     filename: string;
-    followersIds: string[];
-    followIds: string[];
-    newPostToReadIds: string[];
+    lastReviewDate: number;
   };  
 
 export enum STATE {
@@ -57,10 +54,7 @@ export const userSchema = new Schema({
         data: Buffer,
         contentType: String
     },
-    activityId: { type: Schema.Types.ObjectId, ref: 'Activity' },
-    followersId: { type: Schema.Types.ObjectId, ref: 'User' },
-    followIds: { type: Schema.Types.ObjectId, ref: 'User' },
-    newPostToReadIds: { type: Schema.Types.ObjectId, ref: 'Post' },
+    newPostsToRead: { type: Schema.Types.ObjectId, ref: 'Post' },
 },
     { timestamps: true });
 

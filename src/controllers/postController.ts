@@ -1,44 +1,32 @@
 import express from 'express';
 import { userService } from '../services/userService';
-import { labelService } from '../services/labelService';
 import { PostModel } from '../models/Post';
 import { postService } from '../services/postService';
 import { commentService } from '../services/commentService';
 import { likeService } from '../services/likeService';
 import { gfsService } from '../services/gfsService';
-import { LabelModel } from '../models/Label';
 import { UserModel } from '../models/User';
-import { CommentModel } from '../models/Comment';
 import { LikeModel } from '../models/Like';
+import { labelToPostService } from '../services/labeToPostService';
+import { followerFollowService } from '../services/followFollowerService';
 
 const gatherPostData = async (post: PostModel) => {
-    const labels: {[key: string]: string}[] = [];
-    const comments: {[key: string]: string}[] = [];
-
     if (post) {
-        const user = await userService.findUserByQuery({ _id: post.authorId }) as UserModel;
+        const user = await userService.findUserByQuery({ _id: post.author }) as UserModel;
+        const labelsPost = await labelToPostService.findPostLabels(post._id).populate({
+            path: 'labels'
+        })
+         
         if (!user) {
             return null;
         }
 
-        for (let labelId of post.labelIds) {
-            const l = await labelService.findLabelBy({ _id: labelId }) as LabelModel;
-            if (l) {
-                labels.push({
-                    name: l.name,
-                    id: l._id
-                })
-            }
-        }
-
-        for (let commentIds of post.commentIds) {
-            const comment = await commentService.findCommentBy({_id: commentIds}) as CommentModel;
-            const user = await userService.findUserByQuery({_id: comment.userId});
-            if (comment && user) {
-                comments.push({_id: commentIds, text: comment.text, userId: comment.userId, user: user?.name || ''});
-            } 
-        }
-
+        const commentsPost = await commentService.findCommentBy({
+            post: post._id
+        }).populate({
+            path: 'comments'
+        })
+       
         const likes = await likeService.findPostLikes({postId: post._id}) as LikeModel[];
         let likesValue = 0;
         if (likes) {
@@ -48,10 +36,10 @@ const gatherPostData = async (post: PostModel) => {
         }
 
         return {
-            authorId: post.authorId,
+            authorId: post.author,
             author: user.name,
-            labels,
-            comments,
+            labels: labelsPost,
+            comments: commentsPost,
             likesValue,
             title: post.title,
             text: post.text,
@@ -81,10 +69,8 @@ class PostController {
         const postId: string = req.params.id as string;
         const userId = req.headers.id as string;
         const filename = req.file?.filename || '';
-        const { labelIds, title, text, commentIds } = req.body;
+        const { title, text } = req.body;
         const user = await userService.findUserByQuery({ _id: userId as string });
-        const parsedLabels: string[] = labelIds ? labelIds.split(', ') : [];
-        const parsedComments: string[] = commentIds ? commentIds.split(', ') : [];
         const post = await postService.findPostBy({ _id: postId }) as PostModel;
 
         if (!post) {
@@ -101,7 +87,7 @@ class PostController {
             });
         }
 
-        if (post.authorId !== userId) {
+        if (post.author !== userId) {
             return res.status(401).send({
                 type: 'ERROR',
                 message: 'This user is not authorised to change this post'
@@ -114,12 +100,10 @@ class PostController {
         }
 
         const updatePost = {
-            authorId: post.authorId,
+            author: post.author,
             filename: filename || oldFile,
             title: title || post.title,
-            text: text || post.text,
-            labelsId: parsedLabels.length > 0 ? parsedLabels : post.labelIds,
-            commentIds: parsedComments.length > 0 ? parsedComments : post.commentIds
+            text: text || post.text
         } as unknown as PostModel;
 
         try {
@@ -158,10 +142,9 @@ class PostController {
     async createPost(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
         const filename = req.file?.filename || '';
-        const { labels, title, text, } = req.body;
+        const { title, text } = req.body;
         const user = await userService.findUserByQuery({ _id: userId as string });
-        const parsedLabelsIds: string[] = labels ? labels.split(', ') : [];
-
+        
         if (!user) {
             return res.status(404).send({
                 type: 'ERROR',
@@ -169,48 +152,16 @@ class PostController {
             });
         }
 
-        if (parsedLabelsIds.length === 0 || !title || !title.trim() || !text || !text.trim()) {
-            return res.status(400).send({
-                type: 'ERROR',
-                message: 'Invalid post data'
-            });
-        }
-
-        for (let label of parsedLabelsIds) {
-            if (label && label.trim()) {
-                const l = await labelService.findLabelBy({ _id: label });
-                if (!l) {
-                    return res.status(404).send({
-                        type: 'ERROR',
-                        message: 'Label not found'
-                    });
-                }
-            }
-        }
-
         const newPost = {
             filename,
-            authorId: userId,
+            author: userId,
             title,
             text,
-            labelIds: parsedLabelsIds,
-            commentIds: [], 
-            likeIds: []
         } as unknown as PostModel;
 
         try {
             const createdPost = await postService.createPost(newPost) as PostModel;
             const postData = await gatherPostData(createdPost);
-
-            if (user.followersIds && user.followersIds.length > 0) {
-                for (let followerId of user.followersIds) {
-                    const follower = await userService.findUserByQuery({_id: followerId}) as unknown as UserModel;
-                    const news = [...follower.newPostToReadIds];
-                    news.push(createdPost._id);
-                    follower.newPostToReadIds = news;
-                    await userService.updateUser(follower);
-                }
-            }
 
             return res.status(200).send({
                 post: postData
@@ -281,9 +232,34 @@ class PostController {
             }
         }    
 
-    //     // console.log(posts);
-    //     // console.log('searchQuery', searchQuery);
-    //     // console.log(req.query)
+        res.status(200).send({
+            posts: postsData
+        })
+    }
+
+    async showFollowPosts(req: express.Request, res: express.Response) {
+        const userId = req.headers.id as string;
+        const user = await userService.findUserByQuery({ _id: userId as string }) as UserModel;
+        const postsData: any[] = [];
+
+        if (!user) {
+            return res.status(404).send({
+                type: 'ERROR',
+                message: 'User not found'
+            });
+        }
+
+        const lastReviewDate = user.lastReviewDate;
+        const followUsers = await followerFollowService.findFollow(userId);
+        for (let follow of followUsers) {
+            const followPosts = await postService.findPostsBy({author: follow, "createdAt": {
+                $gte: lastReviewDate
+            }}) as PostModel[];
+            for (let followPost of followPosts) {
+                const postData = await gatherPostData(followPost);
+                postsData.push(postData);
+            }
+        }
         res.status(200).send({
             posts: postsData
         })
