@@ -4,10 +4,7 @@ export type PostModel = mongoose.Document & {
     title: string,
     text: string,
     image: any,
-    labelIds: string[],
-    commentIds: string[],
-    likeIds: string[],
-    authorId: string,
+    author: string,
     filename: string,
   };  
 
@@ -27,10 +24,7 @@ const postSchema = new Schema({
     filename: {
         type: String,
     },
-    authorId: { type: Schema.Types.ObjectId, ref: 'User' },
-    commentIds: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
-    labelIds: [{ type: Schema.Types.ObjectId, ref: 'Label' }],
-    likeIds: [{ type: Schema.Types.ObjectId, ref: 'Like' }]
+    author: { type: Schema.Types.ObjectId, ref: 'User' },
 },
     { timestamps: true });
 

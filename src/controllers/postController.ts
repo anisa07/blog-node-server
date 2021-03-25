@@ -10,27 +10,22 @@ import { LabelModel } from '../models/Label';
 import { UserModel } from '../models/User';
 import { CommentModel } from '../models/Comment';
 import { LikeModel } from '../models/Like';
+import { labelToPostService } from '../services/labeToPostService';
 
 const gatherPostData = async (post: PostModel) => {
     const labels: {[key: string]: string}[] = [];
     const comments: {[key: string]: string}[] = [];
 
     if (post) {
-        const user = await userService.findUserByQuery({ _id: post.authorId }) as UserModel;
+        const user = await userService.findUserByQuery({ _id: post.author }) as UserModel;
+        const labelsPost = await labelToPostService.findPostLabels(post._id).populate({
+            path: 'labels'
+        })
+         
         if (!user) {
             return null;
         }
-
-        for (let labelId of post.labelIds) {
-            const l = await labelService.findLabelBy({ _id: labelId }) as LabelModel;
-            if (l) {
-                labels.push({
-                    name: l.name,
-                    id: l._id
-                })
-            }
-        }
-
+       
         for (let commentIds of post.commentIds) {
             const comment = await commentService.findCommentBy({_id: commentIds}) as CommentModel;
             const user = await userService.findUserByQuery({_id: comment.userId});

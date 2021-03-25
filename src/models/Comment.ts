@@ -2,8 +2,8 @@ import mongoose, {Schema} from 'mongoose';
 
 export type CommentModel = mongoose.Document & {
   text: string,
-  userId: string,
-  postId: string
+  user: string,
+  post: string
 }
 
 const commentSchema = new Schema({
@@ -11,8 +11,8 @@ const commentSchema = new Schema({
     type: String,
     required: true,
    },
-   userId: {type: Schema.Types.ObjectId, ref: 'User'},
-   postId: {type: Schema.Types.ObjectId, ref: 'Post'},
+   user: {type: Schema.Types.ObjectId, ref: 'User'},
+   post: {type: Schema.Types.ObjectId, ref: 'Post'},
  },
  {timestamps: true});
  

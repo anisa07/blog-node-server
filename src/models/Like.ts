@@ -2,8 +2,8 @@ import mongoose, { Schema } from 'mongoose';
 
 export type LikeModel = mongoose.Document & {
   value: number,
-  userId: string,
-  postId: string
+  user: string,
+  post: string
 };  
 
 const likeSchema = new Schema({
@@ -11,8 +11,8 @@ const likeSchema = new Schema({
     type: Number,
     default: 0
   },
-  userId: { type: Schema.Types.ObjectId, ref: 'User' },
-  postId: { type: Schema.Types.ObjectId, ref: 'Post' },
+  user: { type: Schema.Types.ObjectId, ref: 'User' },
+  post: { type: Schema.Types.ObjectId, ref: 'Post' },
 },
   { timestamps: true });
 

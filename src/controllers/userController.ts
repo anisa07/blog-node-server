@@ -7,7 +7,8 @@ import { userService } from '../services/userService';
 import { redisService } from '../services/redisService';
 import { sendEmail } from '../utils/sendEmail';
 import { gfsService } from '../services/gfsService';
-import { STATE, USER_TYPE } from '../models/User';
+import { STATE, UserModel, USER_TYPE } from '../models/User';
+import { FollowerFollowModel } from '../models/FollowerFollow';
 
 const DAY_IN_MILSEC = 86400000;
 const QUARTER_IN_MILSEC = 900000;
@@ -95,7 +96,7 @@ class UserController {
             });
         }
 
-        const user = await userService.findUserByQuery({ email });
+        const user = await userService.findUserByQuery({ email }) as UserModel;
 
         if (!user) {
             return res.status(404).send({
@@ -116,7 +117,7 @@ class UserController {
         try {
             const token = await generateToken(email, user._id);
             res.json({
-                ...req.body,
+                status: user.state,
                 id: user._id,
                 token,
                 password: ''
@@ -297,7 +298,6 @@ class UserController {
                 filename: user.filename,
                 email: user.email,
                 name: user.name,
-                newPostToRead: user.newPostToReadIds || []
             });
         }
     }
