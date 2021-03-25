@@ -8,7 +8,6 @@ import { redisService } from '../services/redisService';
 import { sendEmail } from '../utils/sendEmail';
 import { gfsService } from '../services/gfsService';
 import { STATE, UserModel, USER_TYPE } from '../models/User';
-import { FollowerFollowModel } from '../models/FollowerFollow';
 
 const DAY_IN_MILSEC = 86400000;
 const QUARTER_IN_MILSEC = 900000;

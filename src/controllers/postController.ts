@@ -1,14 +1,11 @@
 import express from 'express';
 import { userService } from '../services/userService';
-import { labelService } from '../services/labelService';
 import { PostModel } from '../models/Post';
 import { postService } from '../services/postService';
 import { commentService } from '../services/commentService';
 import { likeService } from '../services/likeService';
 import { gfsService } from '../services/gfsService';
-import { LabelModel } from '../models/Label';
 import { UserModel } from '../models/User';
-import { CommentModel } from '../models/Comment';
 import { LikeModel } from '../models/Like';
 import { labelToPostService } from '../services/labeToPostService';
 
@@ -239,9 +236,6 @@ class PostController {
             }
         }    
 
-    //     // console.log(posts);
-    //     // console.log('searchQuery', searchQuery);
-    //     // console.log(req.query)
         res.status(200).send({
             posts: postsData
         })
