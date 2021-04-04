@@ -13,15 +13,22 @@ class LabelController {
         }
 
         try {
-            const label = await labelService.createLabel({name} as LabelModel);
+            const oldLabel = await labelService.findLabelBy({name});
+            let id;
+            if (oldLabel) {
+                id = oldLabel._id;
+            } else {
+                const label = await labelService.createLabel({name} as LabelModel);
+                id = label._id;
+            }
             return res.status(200).send({
-                id: label._id,
+                id: id,
                 name
             })
         } catch (e) {
             return res.status(500).send({
                 type: 'ERROR',
-                message: 'Error occurs during post creation'
+                message: 'Error occurs adding label'
             });
         }
     }
