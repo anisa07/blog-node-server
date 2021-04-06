@@ -145,7 +145,6 @@ class PostController {
         const filename = req.file?.filename || '';
         const { title, text, labels } = req.body;
         const user = await userService.findUserByQuery({ _id: userId as string });
-        console.log(req.body)
         if (!user) {
             return res.status(404).send({
                 type: 'ERROR',
