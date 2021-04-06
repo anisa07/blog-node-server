@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {json} from 'express';
 import { userService } from '../services/userService';
 import { PostModel } from '../models/Post';
 import { postService } from '../services/postService';
@@ -9,6 +9,7 @@ import { UserModel } from '../models/User';
 import { LikeModel } from '../models/Like';
 import { labelToPostService } from '../services/labeToPostService';
 import { followerFollowService } from '../services/followFollowerService';
+import {LabelToPostModel} from "../models/LabelToPost";
 
 const gatherPostData = async (post: PostModel) => {
     if (post) {
@@ -142,9 +143,9 @@ class PostController {
     async createPost(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
         const filename = req.file?.filename || '';
-        const { title, text } = req.body;
+        const { title, text, labels } = req.body;
         const user = await userService.findUserByQuery({ _id: userId as string });
-        
+        console.log(req.body)
         if (!user) {
             return res.status(404).send({
                 type: 'ERROR',
@@ -161,6 +162,9 @@ class PostController {
 
         try {
             const createdPost = await postService.createPost(newPost) as PostModel;
+            for (let l of (JSON.parse(labels) || [])) {
+                await labelToPostService.addLabelToPost({label: l.id, post: createdPost._id} as LabelToPostModel)
+            }
             const postData = await gatherPostData(createdPost);
 
             return res.status(200).send({
