@@ -10,14 +10,21 @@ import { LikeModel } from '../models/Like';
 import { labelToPostService } from '../services/labeToPostService';
 import { followerFollowService } from '../services/followFollowerService';
 import {LabelToPostModel} from "../models/LabelToPost";
+import {labelService} from "../services/labelService";
+import { LabelModel } from '../models/Label';
 
 const gatherPostData = async (post: PostModel) => {
     if (post) {
         const user = await userService.findUserByQuery({ _id: post.author }) as UserModel;
-        const labelsPost = await labelToPostService.findPostLabels(post._id).populate({
-            path: 'labels'
-        })
-         
+        const labelsToPost = await labelToPostService.findPostLabels(post._id) as LabelToPostModel[];
+        const labels = [] as LabelModel[];
+        for(let l of labelsToPost) {
+            const label = await labelService.findLabelBy({_id: l.label}) as LabelModel;
+            if (label) {
+                labels.push(label);
+            }
+        }
+
         if (!user) {
             return null;
         }
@@ -40,7 +47,7 @@ const gatherPostData = async (post: PostModel) => {
             id: post._id,
             authorId: post.author,
             author: user.name,
-            labels: labelsPost,
+            labels,
             comments: commentsPost,
             likesValue,
             title: post.title,
