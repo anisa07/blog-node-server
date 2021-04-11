@@ -37,6 +37,7 @@ const gatherPostData = async (post: PostModel) => {
         }
 
         return {
+            id: post._id,
             authorId: post.author,
             author: user.name,
             labels: labelsPost,
@@ -164,10 +165,9 @@ class PostController {
             for (let l of (JSON.parse(labels) || [])) {
                 await labelToPostService.addLabelToPost({label: l.id, post: createdPost._id} as LabelToPostModel)
             }
-            const postData = await gatherPostData(createdPost);
 
             return res.status(200).send({
-                post: postData
+                id: createdPost._id
             })
         } catch (e) {
             return res.status(500).send({
@@ -194,10 +194,13 @@ class PostController {
                 message: 'Post not found'
             });
         } else {
-            return res.status(200).send({
-                post: postData
-            })
+            return res.status(200).send(postData)
         }
+    }
+
+    async getPostImage(req: express.Request, res: express.Response) {
+        const filename = req.params.filename;
+        return gfsService.getItem(filename, res);
     }
 
     async readPosts(req: express.Request, res: express.Response) {
@@ -236,7 +239,7 @@ class PostController {
         }    
 
         res.status(200).send({
-            posts: postsData
+            postsData
         })
     }
 

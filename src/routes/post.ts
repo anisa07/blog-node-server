@@ -18,4 +18,6 @@ router.get('/:id', postController.readPost);
 
 router.delete('/image/:id', auth, active, postController.deletePostImage);
 
+router.get('/image/:filename', postController.getPostImage);
+
 export default router;

@@ -158,45 +158,29 @@ class UserController {
         const userId = req.headers.id;
 
         if (!userId) {
-            return res.status(401).send({
-                type: 'ERROR',
-                message: 'Not authorised'
-            });
+            return res.status(200).send(false);
         }
 
         const user = await userService.findUserByQuery({ _id: userId as string });
 
         if (!user) {
-            return res.status(404).send({
-                type: 'ERROR',
-                message: 'User not found'
-            });
+            return res.status(200).send(false);
         }
 
         const salt = await redisService.getItem(userId as string);
         
         if (!salt) {
-            return res.status(401).send({
-                type: 'ERROR',
-                message: 'Not authorised'
-            });
+            return res.status(200).send(false);
         }
+
         try {
             const decodedToken = jwt.verify(token, salt) as { exp: number, userId: string };
             if (decodedToken.userId === userId) {
-                res.json({
-                    auth: true
-                });
+                return res.status(200).send(true);
             }
-            return res.status(401).send({
-                type: 'ERROR',
-                message: 'Not authorised'
-            });
+            return res.status(200).send(false);
         } catch (e) {
-            return res.status(401).send({
-                type: 'ERROR',
-                message: 'Not authorised'
-            });
+            res.status(200).send(false);
         }
     }
 
