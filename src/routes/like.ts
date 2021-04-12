@@ -9,4 +9,6 @@ router.put('/:id', auth, active, likeController.changeLike);
 
 router.post('/', auth, active, likeController.setLike);
 
+router.get('/:postId', auth, active, likeController.getLikeByUser)
+
 export default router;
