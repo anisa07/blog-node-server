@@ -5,10 +5,12 @@ import { auth } from '../utils/authMiddleware';
 
 const router = Router(); 
 
-router.put('/:id', auth, active, likeController.changeLike);
+router.put('/', auth, active, likeController.changeLike);
 
 router.post('/', auth, active, likeController.setLike);
 
-router.get('/:postId', auth, active, likeController.getLikeByUser)
+router.get('/user/post/:postId', auth, active, likeController.getLikeByPostUser)
+
+router.get('/post/:postId', likeController.getLikeValueForPost)
 
 export default router;

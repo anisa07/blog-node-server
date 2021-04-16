@@ -8,10 +8,11 @@ class LikeController {
     async setLike(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
         const { postId, value } = req.body;
-        const like = likeService.findPostLike({ userId, postId }) as unknown as LikeModel;
-        if (!like) {
+        const like = await likeService.findPostLike({ user: userId, post: postId }) as unknown as LikeModel;
+
+        if (!like.value) {
             try {
-                likeService.saveLike({
+                await likeService.saveLike({
                     value: likeValue(value),
                     user: userId,
                     post: postId
@@ -33,24 +34,23 @@ class LikeController {
     async changeLike(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
         const { postId, value } = req.body;
-        const likeId = req.params.id as string;
-        const like = likeService.findPostLike({ _id: likeId }) as unknown as LikeModel;
-        if (like && like.user === userId && like.post === postId) {
+        const like = await likeService.findPostLike({ user: userId, post: postId }) as unknown as LikeModel;
+        if (like) {
             like.value = likeValue(value);
-            like.save();
-            res.status(200).send();
+            await like.save();
+            return res.status(200).send();
         } else {
-            res.status(404).send({
+            return res.status(404).send({
                 type: 'ERROR',
                 message: 'Cannot find like'
             });
         }
     }
 
-    async getLikeByUser(req: express.Request, res: express.Response) {
+    async getLikeByPostUser(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
-        const postId = req.params.id as string;
-        const like = await likeService.findPostLike({ userId, postId }) as unknown as LikeModel;
+        const postId = req.params.postId as string;
+        const like = await likeService.findPostLike({ user: userId, post: postId }) as unknown as LikeModel;
         if (!like) {
             return res.status(200).send({
                 value: 0
@@ -58,6 +58,24 @@ class LikeController {
         } else {
             return res.status(200).send({
                 value: like.value
+            });
+        }
+    }
+
+    async getLikeValueForPost(req: express.Request, res: express.Response) {
+        const postId = req.params.postId as string;
+        const likes = await likeService.findPostLikes({post: postId}) as LikeModel[];
+        let likesValue = 0;
+        if (likes) {
+            for (let like of likes) {
+                likesValue += like.value;
+            }
+            return res.status(200).send({
+                value: likesValue
+            });
+        } else {
+            return res.status(200).send({
+                value: 0
             });
         }
     }

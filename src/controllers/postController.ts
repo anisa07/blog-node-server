@@ -35,7 +35,7 @@ const gatherPostData = async (post: PostModel) => {
             path: 'comments'
         })
        
-        const likes = await likeService.findPostLikes({postId: post._id}) as LikeModel[];
+        const likes = await likeService.findPostLikes({post: post._id}) as LikeModel[];
         let likesValue = 0;
         if (likes) {
             for (let like of likes) {
