@@ -1,6 +1,8 @@
 import express from 'express';
 import { commentService } from '../services/commentService';
 import { CommentModel } from '../models/Comment';
+import {postService} from "../services/postService";
+import {PostModel} from "../models/Post";
 
 class CommentController {
     async createComment(req: express.Request, res: express.Response) {
@@ -59,6 +61,26 @@ class CommentController {
             });
         }
 
+    }
+
+    async readAllPostComments(req: express.Request, res: express.Response) {
+        const postId = req.params.postId as string;
+        const { createdAt, size } = req.query;
+        const searchQuery: any = {}
+
+        if (createdAt) {
+            searchQuery.createdAt = { $lte: createdAt };
+        }
+
+        searchQuery.post = postId;
+
+        const comments = await commentService.findComments(searchQuery)
+            .limit(Number(size) || 10)
+            .sort('-createdAt') as PostModel[];
+
+        return res.status(200).send({
+            comments: comments || []
+        })
     }
 
     async readComment(req: express.Request, res: express.Response){

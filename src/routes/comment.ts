@@ -13,4 +13,6 @@ router.post('/', auth, active, commentController.createComment);
 
 router.get('/:id', commentController.readComment);
 
+router.get('/post/:postId', commentController.readAllPostComments);
+
 export default router;

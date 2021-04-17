@@ -5,6 +5,10 @@ class CommentService {
         return Comment.findOne(query);
     }
 
+    findComments(query: {[key:string]: string}) {
+        return Comment.find(query);
+    }
+
     createComment(c: CommentModel) {
         return Comment.create(c);
     }

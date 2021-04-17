@@ -1,24 +1,24 @@
 import express, {json} from 'express';
-import { userService } from '../services/userService';
-import { PostModel } from '../models/Post';
-import { postService } from '../services/postService';
-import { commentService } from '../services/commentService';
-import { likeService } from '../services/likeService';
-import { gfsService } from '../services/gfsService';
-import { UserModel } from '../models/User';
-import { LikeModel } from '../models/Like';
-import { labelToPostService } from '../services/labeToPostService';
-import { followerFollowService } from '../services/followFollowerService';
+import {userService} from '../services/userService';
+import {PostModel} from '../models/Post';
+import {postService} from '../services/postService';
+import {commentService} from '../services/commentService';
+import {likeService} from '../services/likeService';
+import {gfsService} from '../services/gfsService';
+import {UserModel} from '../models/User';
+import {LikeModel} from '../models/Like';
+import {labelToPostService} from '../services/labeToPostService';
+import {followerFollowService} from '../services/followFollowerService';
 import {LabelToPostModel} from "../models/LabelToPost";
 import {labelService} from "../services/labelService";
-import { LabelModel } from '../models/Label';
+import {LabelModel} from '../models/Label';
 
 const gatherPostData = async (post: PostModel) => {
     if (post) {
-        const user = await userService.findUserByQuery({ _id: post.author }) as UserModel;
+        const user = await userService.findUserByQuery({_id: post.author}) as UserModel;
         const labelsToPost = await labelToPostService.findPostLabels(post._id) as LabelToPostModel[];
         const labels = [] as LabelModel[];
-        for(let l of labelsToPost) {
+        for (let l of labelsToPost) {
             const label = await labelService.findLabelBy({_id: l.label}) as LabelModel;
             if (label) {
                 labels.push(label);
@@ -29,12 +29,10 @@ const gatherPostData = async (post: PostModel) => {
             return null;
         }
 
-        const commentsPost = await commentService.findCommentBy({
+        const commentsPost = await commentService.findComments({
             post: post._id
-        }).populate({
-            path: 'comments'
-        })
-       
+        }).limit(10).sort('-createdAt').populate({ path: 'comments' })
+
         const likes = await likeService.findPostLikes({post: post._id}) as LikeModel[];
         let likesValue = 0;
         if (likes) {
@@ -52,7 +50,7 @@ const gatherPostData = async (post: PostModel) => {
             likesValue,
             title: post.title,
             text: post.text,
-            filename: post.filename, 
+            filename: post.filename,
         }
     }
 }
@@ -60,7 +58,7 @@ const gatherPostData = async (post: PostModel) => {
 class PostController {
     async deletePostImage(req: express.Request, res: express.Response) {
         const postId = req.params.id;
-        const post = await postService.findPostBy({ _id: postId }) as PostModel;
+        const post = await postService.findPostBy({_id: postId}) as PostModel;
         if (post && post.filename) {
             await gfsService.deleteItem(post.filename, res);
             post.filename = "";
@@ -78,9 +76,9 @@ class PostController {
         const postId: string = req.params.id as string;
         const userId = req.headers.id as string;
         const filename = req.file?.filename || '';
-        const { title, text } = req.body;
-        const user = await userService.findUserByQuery({ _id: userId as string });
-        const post = await postService.findPostBy({ _id: postId }) as PostModel;
+        const {title, text} = req.body;
+        const user = await userService.findUserByQuery({_id: userId as string});
+        const post = await postService.findPostBy({_id: postId}) as PostModel;
 
         if (!post) {
             return res.status(404).send({
@@ -117,7 +115,7 @@ class PostController {
 
         try {
             await postService.updatePost(postId, updatePost);
-            const updatedPost = await postService.findPostBy({ _id: postId }) as PostModel;
+            const updatedPost = await postService.findPostBy({_id: postId}) as PostModel;
             const postData = await gatherPostData(updatedPost);
             return res.status(200).send({
                 post: postData
@@ -134,7 +132,7 @@ class PostController {
     async deletePost(req: express.Request, res: express.Response) {
         const postId: string = req.params.id as string;
         if (postId) {
-            const post = await postService.findPostBy({ _id: postId }) as PostModel;
+            const post = await postService.findPostBy({_id: postId}) as PostModel;
             if (post && post.filename) {
                 await gfsService.deleteItem(post.filename, res);
             }
@@ -151,8 +149,8 @@ class PostController {
     async createPost(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
         const filename = req.file?.filename || '';
-        const { title, text, labels } = req.body;
-        const user = await userService.findUserByQuery({ _id: userId as string });
+        const {title, text, labels} = req.body;
+        const user = await userService.findUserByQuery({_id: userId as string});
         if (!user) {
             return res.status(404).send({
                 type: 'ERROR',
@@ -193,7 +191,7 @@ class PostController {
             });
         }
 
-        const post = await postService.findPostBy({ _id: postId }) as PostModel;
+        const post = await postService.findPostBy({_id: postId}) as PostModel;
         const postData = await gatherPostData(post);
         if (!post) {
             return res.status(404).send({
@@ -211,13 +209,13 @@ class PostController {
     }
 
     async readPosts(req: express.Request, res: express.Response) {
-        const { createdAt, size, labelIds, authorId } = req.query;
+        const {createdAt, size, labelIds, authorId} = req.query;
         const searchQuery: any = {}
         const parsedLabelsIds: string[] = labelIds ? (labelIds as string).split(',') : [];
         const postsData: any[] = [];
 
         if (createdAt) {
-            searchQuery.createdAt = { $lte: createdAt };
+            searchQuery.createdAt = {$lte: createdAt};
         }
 
         if (parsedLabelsIds && parsedLabelsIds.length > 0) {
@@ -225,7 +223,7 @@ class PostController {
         }
 
         if (authorId) {
-            const user = await userService.findUserByQuery({ _id: authorId as string });
+            const user = await userService.findUserByQuery({_id: authorId as string});
             if (!user) {
                 res.status(200).send({
                     posts: []
@@ -234,16 +232,16 @@ class PostController {
             searchQuery.authorId = authorId;
         }
 
-        const posts = await postService.findPostsBy(searchQuery) 
+        const posts = await postService.findPostsBy(searchQuery)
             .limit(Number(size) || 10)
             .sort('-createdAt') as PostModel[];
-        
+
         for (let p of posts) {
             const postData = await gatherPostData(p);
             if (postsData) {
                 postsData.push(postData);
             }
-        }    
+        }
 
         res.status(200).send({
             postsData
@@ -252,7 +250,7 @@ class PostController {
 
     async showFollowPosts(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
-        const user = await userService.findUserByQuery({ _id: userId as string }) as UserModel;
+        const user = await userService.findUserByQuery({_id: userId as string}) as UserModel;
         const postsData: any[] = [];
 
         if (!user) {
@@ -265,9 +263,11 @@ class PostController {
         const lastReviewDate = user.lastReviewDate;
         const followUsers = await followerFollowService.findFollow(userId);
         for (let follow of followUsers) {
-            const followPosts = await postService.findPostsBy({author: follow, "createdAt": {
-                $gte: lastReviewDate
-            }}) as PostModel[];
+            const followPosts = await postService.findPostsBy({
+                author: follow, "createdAt": {
+                    $gte: lastReviewDate
+                }
+            }) as PostModel[];
             for (let followPost of followPosts) {
                 const postData = await gatherPostData(followPost);
                 postsData.push(postData);

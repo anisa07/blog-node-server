@@ -10,7 +10,7 @@ class LikeController {
         const { postId, value } = req.body;
         const like = await likeService.findPostLike({ user: userId, post: postId }) as unknown as LikeModel;
 
-        if (!like.value) {
+        if (!like || !like.value) {
             try {
                 await likeService.saveLike({
                     value: likeValue(value),
