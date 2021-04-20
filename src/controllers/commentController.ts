@@ -1,8 +1,54 @@
 import express from 'express';
-import { commentService } from '../services/commentService';
-import { CommentModel } from '../models/Comment';
+import {commentService} from '../services/commentService';
+import {CommentModel} from '../models/Comment';
 import {postService} from "../services/postService";
 import {PostModel} from "../models/Post";
+import {COMMENTS_LIST_SIZE} from "../utils/constants";
+import {userService} from "../services/userService";
+import {UserModel} from "../models/User";
+
+export const getCommentsData = async (query: { createdAt?: any, size?: any, postId?: string }) => {
+    const searchQuery: any = {}
+    let showMoreComments = false;
+    const commentsListSize = Number(query.size) || COMMENTS_LIST_SIZE;
+
+    if (query.createdAt) {
+        searchQuery.createdAt = {$lte: query.createdAt};
+    }
+
+    searchQuery.post = query.postId;
+
+    let comments = await commentService.findComments(searchQuery)
+        .limit(commentsListSize + 1)
+        .sort('-createdAt') as CommentModel[];
+
+    let commentsWithUsername = [] as { [key: string]: any }[]
+
+    if (comments?.length === COMMENTS_LIST_SIZE + 1) {
+        showMoreComments = true;
+        comments = comments.slice(0, commentsListSize);
+    }
+
+    if (comments) {
+        for (let comment of comments) {
+            const user = await userService.findUserByQuery({_id: comment.user}) as UserModel;
+            commentsWithUsername.push({
+                username: user.name,
+                createdAt: comment.createdAt,
+                text: comment.text,
+                id: comment._id,
+                userId: comment.user,
+                postId: comment.post,
+            });
+        }
+    }
+
+    return {
+        comments: commentsWithUsername,
+        showMoreComments
+    }
+}
+
 
 class CommentController {
     async createComment(req: express.Request, res: express.Response) {
@@ -22,7 +68,7 @@ class CommentController {
             return res.status(200).send({
                 id: comment._id,
                 text,
-                userId, 
+                userId,
                 postId
             })
         } catch (e) {
@@ -65,25 +111,17 @@ class CommentController {
 
     async readAllPostComments(req: express.Request, res: express.Response) {
         const postId = req.params.postId as string;
-        const { createdAt, size } = req.query;
-        const searchQuery: any = {}
+        const {createdAt, size} = req.query;
 
-        if (createdAt) {
-            searchQuery.createdAt = { $lte: createdAt };
-        }
-
-        searchQuery.post = postId;
-
-        const comments = await commentService.findComments(searchQuery)
-            .limit(Number(size) || 10)
-            .sort('-createdAt') as PostModel[];
+        const data = await getCommentsData({postId, createdAt, size})
 
         return res.status(200).send({
-            comments: comments || []
+            comments: data.comments || [],
+            showMoreComments: data.showMoreComments,
         })
     }
 
-    async readComment(req: express.Request, res: express.Response){
+    async readComment(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
         const commentId = req.params.id as string;
         const comment = await commentService.findCommentBy({_id: commentId, user: userId});
@@ -96,7 +134,7 @@ class CommentController {
         } else {
             return res.status(200).send({
                 comment
-            }) 
+            })
         }
     }
 
@@ -104,7 +142,10 @@ class CommentController {
         const commentId = req.params.id as string;
         const userId = req.headers.id as string;
 
-        return commentService.deleteComment({_id: commentId, user: userId});
+        await commentService.deleteComment({_id: commentId, user: userId});
+        return res.status(200).send({
+            commentId
+        })
     }
 }
 

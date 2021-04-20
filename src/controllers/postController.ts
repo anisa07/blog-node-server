@@ -12,6 +12,9 @@ import {followerFollowService} from '../services/followFollowerService';
 import {LabelToPostModel} from "../models/LabelToPost";
 import {labelService} from "../services/labelService";
 import {LabelModel} from '../models/Label';
+import { COMMENTS_LIST_SIZE } from '../utils/constants';
+import {CommentModel} from "../models/Comment";
+import commentController, {getCommentsData} from "./commentController";
 
 const gatherPostData = async (post: PostModel) => {
     if (post) {
@@ -29,9 +32,7 @@ const gatherPostData = async (post: PostModel) => {
             return null;
         }
 
-        const commentsPost = await commentService.findComments({
-            post: post._id
-        }).limit(10).sort('-createdAt').populate({ path: 'comments' })
+        const commentsData = await getCommentsData({postId: post._id});
 
         const likes = await likeService.findPostLikes({post: post._id}) as LikeModel[];
         let likesValue = 0;
@@ -46,7 +47,8 @@ const gatherPostData = async (post: PostModel) => {
             authorId: post.author,
             author: user.name,
             labels,
-            comments: commentsPost,
+            comments: commentsData.comments,
+            showMoreComments: commentsData.showMoreComments,
             likesValue,
             title: post.title,
             text: post.text,
