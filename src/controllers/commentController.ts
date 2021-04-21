@@ -1,8 +1,6 @@
 import express from 'express';
 import {commentService} from '../services/commentService';
 import {CommentModel} from '../models/Comment';
-import {postService} from "../services/postService";
-import {PostModel} from "../models/Post";
 import {COMMENTS_LIST_SIZE} from "../utils/constants";
 import {userService} from "../services/userService";
 import {UserModel} from "../models/User";
@@ -13,7 +11,7 @@ export const getCommentsData = async (query: { createdAt?: any, size?: any, post
     const commentsListSize = Number(query.size) || COMMENTS_LIST_SIZE;
 
     if (query.createdAt) {
-        searchQuery.createdAt = {$lte: query.createdAt};
+        searchQuery.createdAt = {$lt: query.createdAt};
     }
 
     searchQuery.post = query.postId;
@@ -112,7 +110,6 @@ class CommentController {
     async readAllPostComments(req: express.Request, res: express.Response) {
         const postId = req.params.postId as string;
         const {createdAt, size} = req.query;
-
         const data = await getCommentsData({postId, createdAt, size})
 
         return res.status(200).send({
