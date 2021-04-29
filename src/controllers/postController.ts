@@ -12,7 +12,7 @@ import {followerFollowService} from '../services/followFollowerService';
 import {LabelToPostModel} from "../models/LabelToPost";
 import {labelService} from "../services/labelService";
 import {LabelModel} from '../models/Label';
-import { COMMENTS_LIST_SIZE } from '../utils/constants';
+import {COMMENTS_LIST_SIZE, POSTS_LIST_SIZE} from '../utils/constants';
 import {CommentModel} from "../models/Comment";
 import commentController, {getCommentsData} from "./commentController";
 
@@ -53,6 +53,7 @@ const gatherPostData = async (post: PostModel) => {
             title: post.title,
             text: post.text,
             filename: post.filename,
+            createdAt: post.createdAt
         }
     }
 }
@@ -215,9 +216,11 @@ class PostController {
         const searchQuery: any = {}
         const parsedLabelsIds: string[] = labelIds ? (labelIds as string).split(',') : [];
         const postsData: any[] = [];
+        const postsListSize = Number(size) || POSTS_LIST_SIZE;
+        let showMorePosts = false;
 
         if (createdAt) {
-            searchQuery.createdAt = {$lte: createdAt};
+            searchQuery.createdAt = {$lt: createdAt};
         }
 
         if (parsedLabelsIds && parsedLabelsIds.length > 0) {
@@ -234,9 +237,14 @@ class PostController {
             searchQuery.authorId = authorId;
         }
 
-        const posts = await postService.findPostsBy(searchQuery)
-            .limit(Number(size) || 10)
+        let posts = await postService.findPostsBy(searchQuery)
+            .limit(postsListSize + 1)
             .sort('-createdAt') as PostModel[];
+
+        if (posts?.length === POSTS_LIST_SIZE + 1) {
+            showMorePosts = true;
+            posts = posts.slice(0, postsListSize);
+        }
 
         for (let p of posts) {
             const postData = await gatherPostData(p);
@@ -246,7 +254,8 @@ class PostController {
         }
 
         res.status(200).send({
-            postsData
+            posts: postsData,
+            showMorePosts
         })
     }
 

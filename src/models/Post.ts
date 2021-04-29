@@ -6,6 +6,7 @@ export type PostModel = mongoose.Document & {
     image: any,
     author: string,
     filename: string,
+    createdAt?: any;
   };  
 
 const postSchema = new Schema({
