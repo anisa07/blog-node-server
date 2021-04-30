@@ -20,6 +20,10 @@ class CommentService {
     updateComment(id: string, userId: string, postId: string, c: CommentModel) {
         return Comment.updateOne({_id: id, user: userId, post: postId}, c)
     }
+
+    countComments(query: {[key:string]: string}) {
+        return Comment.countDocuments(query)
+    }
 }
 
 const commentService = new CommentService();

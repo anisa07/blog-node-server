@@ -1,4 +1,4 @@
-import express, {json} from 'express';
+import express from 'express';
 import {userService} from '../services/userService';
 import {PostModel} from '../models/Post';
 import {postService} from '../services/postService';
@@ -12,11 +12,10 @@ import {followerFollowService} from '../services/followFollowerService';
 import {LabelToPostModel} from "../models/LabelToPost";
 import {labelService} from "../services/labelService";
 import {LabelModel} from '../models/Label';
-import {COMMENTS_LIST_SIZE, POSTS_LIST_SIZE} from '../utils/constants';
-import {CommentModel} from "../models/Comment";
-import commentController, {getCommentsData} from "./commentController";
+import {POSTS_LIST_SIZE} from '../utils/constants';
+import {getCommentsData} from "./commentController";
 
-const gatherPostData = async (post: PostModel) => {
+const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
     if (post) {
         const user = await userService.findUserByQuery({_id: post.author}) as UserModel;
         const labelsToPost = await labelToPostService.findPostLabels(post._id) as LabelToPostModel[];
@@ -32,8 +31,6 @@ const gatherPostData = async (post: PostModel) => {
             return null;
         }
 
-        const commentsData = await getCommentsData({postId: post._id});
-
         const likes = await likeService.findPostLikes({post: post._id}) as LikeModel[];
         let likesValue = 0;
         if (likes) {
@@ -41,6 +38,23 @@ const gatherPostData = async (post: PostModel) => {
                 likesValue += like.value;
             }
         }
+
+        if (allPostsData) {
+            const commentsCount = await commentService.countComments({post: post._id});
+            return {
+                id: post._id,
+                authorId: post.author,
+                author: user.name,
+                labels,
+                commentsCount,
+                likesValue,
+                title: post.title,
+                text: post.text.slice(0, 55),
+                createdAt: post.createdAt
+            }
+        }
+
+        const commentsData = await getCommentsData({postId: post._id});
 
         return {
             id: post._id,
@@ -247,7 +261,7 @@ class PostController {
         }
 
         for (let p of posts) {
-            const postData = await gatherPostData(p);
+            const postData = await gatherPostData(p, true);
             if (postsData) {
                 postsData.push(postData);
             }
