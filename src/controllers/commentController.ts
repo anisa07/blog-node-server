@@ -4,46 +4,41 @@ import {CommentModel} from '../models/Comment';
 import {COMMENTS_LIST_SIZE} from "../utils/constants";
 import {userService} from "../services/userService";
 import {UserModel} from "../models/User";
+import {PaginateResult} from "mongoose";
+import {PostModel} from "../models/Post";
 
-export const getCommentsData = async (query: { createdAt?: any, size?: any, postId?: string }) => {
+export const getCommentsData = async (query: { updatedAt?: any, size?: any, postId?: string, page?: any }) => {
     const searchQuery: any = {}
     let showMoreComments = false;
     const commentsListSize = Number(query.size) || COMMENTS_LIST_SIZE;
+    const commentPage = Number(query.page) || 1;
+    let data: PaginateResult<CommentModel>;
 
-    if (query.createdAt) {
-        searchQuery.createdAt = {$lt: query.createdAt};
+    if (query.updatedAt) {
+        searchQuery.updatedAt = {$lt: query.updatedAt};
     }
 
     searchQuery.post = query.postId;
 
-    let comments = await commentService.findComments(searchQuery)
-        .limit(commentsListSize + 1)
-        .sort('-createdAt') as CommentModel[];
+    data = await commentService.findComments(searchQuery, commentPage, commentsListSize);
 
-    let commentsWithUsername = [] as { [key: string]: any }[]
+    let commentsWithUsername = [] as { [key: string]: any }[];
 
-    if (comments?.length === COMMENTS_LIST_SIZE + 1) {
-        showMoreComments = true;
-        comments = comments.slice(0, commentsListSize);
-    }
-
-    if (comments) {
-        for (let comment of comments) {
-            const user = await userService.findUserByQuery({_id: comment.user}) as UserModel;
-            commentsWithUsername.push({
-                username: user.name,
-                createdAt: comment.createdAt,
-                text: comment.text,
-                id: comment._id,
-                userId: comment.user,
-                postId: comment.post,
-            });
-        }
+    for (let comment of data.docs) {
+        const user = await userService.findUserByQuery({_id: comment.user}) as UserModel;
+        commentsWithUsername.push({
+            username: user.name,
+            updatedAt: comment.updatedAt,
+            text: comment.text,
+            id: comment._id,
+            userId: comment.user,
+            postId: comment.post,
+        });
     }
 
     return {
         comments: commentsWithUsername,
-        showMoreComments
+        showMoreComments: data.hasNextPage
     }
 }
 
@@ -109,8 +104,8 @@ class CommentController {
 
     async readAllPostComments(req: express.Request, res: express.Response) {
         const postId = req.params.postId as string;
-        const {createdAt, size} = req.query;
-        const data = await getCommentsData({postId, createdAt, size})
+        const {updatedAt, size, page} = req.query;
+        const data = await getCommentsData({postId, updatedAt, size, page})
 
         return res.status(200).send({
             comments: data.comments || [],

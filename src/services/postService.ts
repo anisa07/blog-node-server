@@ -1,8 +1,23 @@
 import {Post, PostModel} from '../models/Post';
 
 class PostService {
-    findPostsBy(query: {[key:string]: any}) {
-        return Post.find(query);
+    findPostsByText(query: {[key:string]: any}, text: string, sort: {[key:string]: any} | string, page: number, size: number) {
+        const regex = new RegExp(`.*${text}.*`, 'i');
+        return Post.paginate({
+            ...query, ...{$or: [{text: {$regex: regex}}, {title: {$regex: regex}}]}
+        }, {
+            sort,
+            page,
+            limit: size
+        })
+    }
+
+    findPostsBy(query: {[key:string]: any}, sort: {[key:string]: any} | string, page: number, size: number) {
+        return Post.paginate(query,{
+            sort,
+            page,
+            limit: size
+        })
     }
 
     findPostBy(query: {[key:string]: string}) {

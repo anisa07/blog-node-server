@@ -1,12 +1,17 @@
 import {Comment, CommentModel} from '../models/Comment';
+import {Post} from "../models/Post";
 
 class CommentService {
     findCommentBy(query: {[key:string]: string}) {
         return Comment.findOne(query);
     }
 
-    findComments(query: {[key:string]: string}) {
-        return Comment.find(query);
+    findComments(query: {[key:string]: string}, page: number, size: number) {
+        return Comment.paginate(query, {
+            sort: '-updatedAt',
+            page,
+            limit: size
+        });
     }
 
     createComment(c: CommentModel) {

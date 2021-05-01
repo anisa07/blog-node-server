@@ -14,6 +14,7 @@ import {labelService} from "../services/labelService";
 import {LabelModel} from '../models/Label';
 import {POSTS_LIST_SIZE} from '../utils/constants';
 import {getCommentsData} from "./commentController";
+import { PaginateResult } from 'mongoose';
 
 const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
     if (post) {
@@ -50,7 +51,7 @@ const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
                 likesValue,
                 title: post.title,
                 text: post.text.slice(0, 55),
-                createdAt: post.createdAt
+                updatedAt: post.updatedAt
             }
         }
 
@@ -67,7 +68,7 @@ const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
             title: post.title,
             text: post.text,
             filename: post.filename,
-            createdAt: post.createdAt
+            updatedAt: post.updatedAt
         }
     }
 }
@@ -226,15 +227,18 @@ class PostController {
     }
 
     async readPosts(req: express.Request, res: express.Response) {
-        const {createdAt, size, labelIds, authorId} = req.query;
+        const {updatedAt, size, labelIds, authorId, searchText, sortBy, page} = req.query;
         const searchQuery: any = {}
         const parsedLabelsIds: string[] = labelIds ? (labelIds as string).split(',') : [];
         const postsData: any[] = [];
         const postsListSize = Number(size) || POSTS_LIST_SIZE;
-        let showMorePosts = false;
+        const postsPage = Number(page) || 1;
+        let data: PaginateResult<PostModel>;
 
-        if (createdAt) {
-            searchQuery.createdAt = {$lt: createdAt};
+        console.log(req.query)
+
+        if (updatedAt) {
+            searchQuery.updatedAt = {$lt: updatedAt};
         }
 
         if (parsedLabelsIds && parsedLabelsIds.length > 0) {
@@ -251,16 +255,16 @@ class PostController {
             searchQuery.authorId = authorId;
         }
 
-        let posts = await postService.findPostsBy(searchQuery)
-            .limit(postsListSize + 1)
-            .sort('-createdAt') as PostModel[];
+        // '-updatedAt'
+        const sortField = !sortBy ? '-updatedAt' : sortBy === "author" ? {"author": 1} : {"title": 1};
 
-        if (posts?.length === POSTS_LIST_SIZE + 1) {
-            showMorePosts = true;
-            posts = posts.slice(0, postsListSize);
+        if (searchText) {
+            data = await postService.findPostsByText(searchQuery, searchText as string, sortField, postsPage, postsListSize);
+        } else {
+            data = await postService.findPostsBy(searchQuery, sortField, postsPage, postsListSize);
         }
 
-        for (let p of posts) {
+        for (let p of data.docs) {
             const postData = await gatherPostData(p, true);
             if (postsData) {
                 postsData.push(postData);
@@ -269,11 +273,15 @@ class PostController {
 
         res.status(200).send({
             posts: postsData,
-            showMorePosts
+            hasNextPage: data.hasNextPage,
+            hasPreviousPage: data.hasPrevPage,
+            totalDocs: data.totalDocs,
+            totalPages: data.totalPages
         })
     }
 
     async showFollowPosts(req: express.Request, res: express.Response) {
+        const {size, page} = req.query;
         const userId = req.headers.id as string;
         const user = await userService.findUserByQuery({_id: userId as string}) as UserModel;
         const postsData: any[] = [];
@@ -288,12 +296,13 @@ class PostController {
         const lastReviewDate = user.lastReviewDate;
         const followUsers = await followerFollowService.findFollow(userId);
         for (let follow of followUsers) {
-            const followPosts = await postService.findPostsBy({
-                author: follow, "createdAt": {
+            let followPosts = {} as PaginateResult<PostModel>;
+            followPosts = await postService.findPostsBy({
+                author: follow, "updatedAt": {
                     $gte: lastReviewDate
                 }
-            }) as PostModel[];
-            for (let followPost of followPosts) {
+            },  '-updatedAt', Number(page) || 1, Number(size) || POSTS_LIST_SIZE);
+            for (let followPost of followPosts.docs) {
                 const postData = await gatherPostData(followPost);
                 postsData.push(postData);
             }

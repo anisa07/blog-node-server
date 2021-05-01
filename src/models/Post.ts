@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
 
 export type PostModel = mongoose.Document & {
     title: string,
@@ -7,6 +8,7 @@ export type PostModel = mongoose.Document & {
     author: string,
     filename: string,
     createdAt?: any;
+    updatedAt?: any;
   };  
 
 const postSchema = new Schema({
@@ -28,6 +30,8 @@ const postSchema = new Schema({
     author: { type: Schema.Types.ObjectId, ref: 'User' },
 },
     { timestamps: true });
+
+postSchema.plugin(mongoosePaginate);
 
 const Post = mongoose.model('Post', postSchema);
 
