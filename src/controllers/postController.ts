@@ -51,6 +51,7 @@ const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
                 likesValue,
                 title: post.title,
                 text: post.text.slice(0, 55),
+                filename: post.filename,
                 updatedAt: post.updatedAt
             }
         }
@@ -235,11 +236,9 @@ class PostController {
         const postsPage = Number(page) || 1;
         let data: PaginateResult<PostModel>;
 
-        console.log(req.query)
-
-        if (updatedAt) {
-            searchQuery.updatedAt = {$lt: updatedAt};
-        }
+        // if (updatedAt) {
+        //     searchQuery.updatedAt = {$lt: updatedAt};
+        // }
 
         if (parsedLabelsIds && parsedLabelsIds.length > 0) {
             searchQuery.labelsId = parsedLabelsIds;
@@ -264,6 +263,7 @@ class PostController {
             data = await postService.findPostsBy(searchQuery, sortField, postsPage, postsListSize);
         }
 
+        // console.log('data', data)
         for (let p of data.docs) {
             const postData = await gatherPostData(p, true);
             if (postsData) {
