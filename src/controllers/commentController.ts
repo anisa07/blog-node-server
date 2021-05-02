@@ -5,7 +5,6 @@ import {COMMENTS_LIST_SIZE} from "../utils/constants";
 import {userService} from "../services/userService";
 import {UserModel} from "../models/User";
 import {PaginateResult} from "mongoose";
-import {PostModel} from "../models/Post";
 
 export const getCommentsData = async (query: { updatedAt?: any, size?: any, postId?: string, page?: any }) => {
     const searchQuery: any = {}
@@ -14,9 +13,9 @@ export const getCommentsData = async (query: { updatedAt?: any, size?: any, post
     const commentPage = Number(query.page) || 1;
     let data: PaginateResult<CommentModel>;
 
-    if (query.updatedAt) {
-        searchQuery.updatedAt = {$lt: query.updatedAt};
-    }
+    // if (query.updatedAt) {
+    //     searchQuery.updatedAt = {$lt: query.updatedAt};
+    // }
 
     searchQuery.post = query.postId;
 
