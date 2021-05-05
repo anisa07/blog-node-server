@@ -1,22 +1,38 @@
 import {Post, PostModel} from '../models/Post';
 
+interface FindPostBy {
+    query: {[key:string]: any},
+    text?: string,
+    sort: {[key:string]: any} | string,
+    page: number, size: number,
+    searchBy?: string
+}
+
 class PostService {
-    findPostsByText(query: {[key:string]: any}, text: string, sort: {[key:string]: any} | string, page: number, size: number) {
-        const regex = new RegExp(`.*${text}.*`, 'i');
+    findPostsByText(findBy: FindPostBy) {
+        let regexObj;
+        const regex = new RegExp(`.*${findBy.text}.*`, 'i');
+
+        if (findBy.searchBy) {
+            regexObj = {title: {$regex: regex}}
+        } else {
+            regexObj = {$or: [{text: {$regex: regex}}, {title: {$regex: regex}}]}
+        }
+
         return Post.paginate({
-            ...query, ...{$or: [{text: {$regex: regex}}, {title: {$regex: regex}}]}
+            ...findBy.query, ...regexObj
         }, {
-            sort,
-            page,
-            limit: size
+            sort: findBy.sort,
+            page: findBy.page,
+            limit: findBy.size
         })
     }
 
-    findPostsBy(query: {[key:string]: any}, sort: {[key:string]: any} | string, page: number, size: number) {
-        return Post.paginate(query,{
-            sort,
-            page,
-            limit: size
+    findPostsBy(findBy: FindPostBy) {
+        return Post.paginate(findBy.query,{
+            sort: findBy.sort,
+            page: findBy.page,
+            limit: findBy.size
         })
     }
 

@@ -1,7 +1,7 @@
 import {User, UserModel} from '../models/User';
 
 class UserService {
-    findUserByQuery(query: {[key:string]: string}) {
+    findUserByQuery(query: {[key:string]: any}) {
         return User.findOne(query);
     }
 

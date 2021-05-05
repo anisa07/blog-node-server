@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {query} from 'express';
 import {userService} from '../services/userService';
 import {PostModel} from '../models/Post';
 import {postService} from '../services/postService';
@@ -14,7 +14,7 @@ import {labelService} from "../services/labelService";
 import {LabelModel} from '../models/Label';
 import {POSTS_LIST_SIZE} from '../utils/constants';
 import {getCommentsData} from "./commentController";
-import { PaginateResult } from 'mongoose';
+import {PaginateResult} from 'mongoose';
 
 const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
     if (post) {
@@ -228,7 +228,7 @@ class PostController {
     }
 
     async readPosts(req: express.Request, res: express.Response) {
-        const {updatedAt, size, labelIds, authorId, searchText, sortBy, page} = req.query;
+        const {size, labelIds, authorId, searchText, sortBy, sortDir, page, searchBy} = req.query;
         const searchQuery: any = {}
         const parsedLabelsIds: string[] = labelIds ? (labelIds as string).split(',') : [];
         const postsData: any[] = [];
@@ -236,34 +236,59 @@ class PostController {
         const postsPage = Number(page) || 1;
         let data: PaginateResult<PostModel>;
 
-        // if (updatedAt) {
-        //     searchQuery.updatedAt = {$lt: updatedAt};
-        // }
-
-        if (parsedLabelsIds && parsedLabelsIds.length > 0) {
-            searchQuery.labelsId = parsedLabelsIds;
-        }
-
-        if (authorId) {
+        if (searchBy === "author" && searchText) {
+            const regex = new RegExp(`.*${searchText}.*`, 'i');
+            const user = await userService.findUserByQuery({name: {$regex: regex}});
+            if (!user) {
+                return res.status(200).send({
+                    posts: [],
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                    totalDocs: 0,
+                    totalPages: 0
+                })
+            }
+            searchQuery.author = user._id;
+        } else if (authorId) {
             const user = await userService.findUserByQuery({_id: authorId as string});
             if (!user) {
                 res.status(200).send({
                     posts: []
                 })
             }
-            searchQuery.authorId = authorId;
+            searchQuery.author = authorId;
         }
 
-        // '-updatedAt'
-        const sortField = !sortBy ? '-updatedAt' : sortBy === "author" ? {"author": 1} : {"title": 1};
+        if (parsedLabelsIds && parsedLabelsIds.length > 0) {
+            searchQuery.labelsId = parsedLabelsIds;
+        }
 
-        if (searchText) {
-            data = await postService.findPostsByText(searchQuery, searchText as string, sortField, postsPage, postsListSize);
+        let dir = sortDir === 'asc' ? 1 : -1;
+        let sortField: string | {[key:string]: any} = '-updatedAt';
+        if (!!sortBy) {
+            sortField = {[sortBy as string]: dir}
+        }
+
+        console.log("query", searchQuery)
+        console.log("sortField", sortField)
+        if (searchText && searchBy !== "author") {
+            data = await postService.findPostsByText({
+                query: searchQuery,
+                sort: sortField,
+                page: postsPage,
+                size: postsListSize,
+                text: searchText as string,
+                searchBy: searchBy === 'title' ? 'title' : ''
+            });
         } else {
-            data = await postService.findPostsBy(searchQuery, sortField, postsPage, postsListSize);
+            data = await postService.findPostsBy({
+                query: searchQuery,
+                sort: sortField,
+                page: postsPage,
+                size: postsListSize,
+            });
         }
 
-        // console.log('data', data)
         for (let p of data.docs) {
             const postData = await gatherPostData(p, true);
             if (postsData) {
@@ -298,10 +323,15 @@ class PostController {
         for (let follow of followUsers) {
             let followPosts = {} as PaginateResult<PostModel>;
             followPosts = await postService.findPostsBy({
-                author: follow, "updatedAt": {
-                    $gte: lastReviewDate
-                }
-            },  '-updatedAt', Number(page) || 1, Number(size) || POSTS_LIST_SIZE);
+                query: {
+                    author: follow, "updatedAt": {
+                        $gte: lastReviewDate
+                    }
+                },
+                sort: '-updatedAt',
+                page:  Number(page) || 1,
+                size: Number(size) || POSTS_LIST_SIZE
+            });
             for (let followPost of followPosts.docs) {
                 const postData = await gatherPostData(followPost);
                 postsData.push(postData);
