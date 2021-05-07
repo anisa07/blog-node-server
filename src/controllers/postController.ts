@@ -113,7 +113,7 @@ class PostController {
             });
         }
 
-        if (post.author !== userId) {
+        if (post.author.toString() !== userId) {
             return res.status(401).send({
                 type: 'ERROR',
                 message: 'This user is not authorised to change this post'
@@ -134,10 +134,8 @@ class PostController {
 
         try {
             await postService.updatePost(postId, updatePost);
-            const updatedPost = await postService.findPostBy({_id: postId}) as PostModel;
-            const postData = await gatherPostData(updatedPost);
             return res.status(200).send({
-                post: postData
+                id: postId
             })
         } catch (e) {
             return res.status(500).send({
