@@ -267,8 +267,6 @@ class PostController {
             sortField = {[sortBy as string]: dir}
         }
 
-        console.log("query", searchQuery)
-        console.log("sortField", sortField)
         if (searchText && searchBy !== "author") {
             data = await postService.findPostsByText({
                 query: searchQuery,
