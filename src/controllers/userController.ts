@@ -1,15 +1,14 @@
-
 import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { userService } from '../services/userService';
-import { redisService } from '../services/redisService';
-import { sendEmail } from '../utils/sendEmail';
-import { gfsService } from '../services/gfsService';
-import { STATE, UserModel, USER_TYPE } from '../models/User';
-import { followerFollowService } from '../services/followFollowerService';
-import { FollowerFollowModel } from '../models/FollowerFollow';
+import {userService} from '../services/userService';
+import {redisService} from '../services/redisService';
+import {sendEmail} from '../utils/sendEmail';
+import {gfsService} from '../services/gfsService';
+import {STATE, USER_TYPE, UserModel} from '../models/User';
+import {followerFollowService} from '../services/followFollowerService';
+import {FollowerFollowModel} from '../models/FollowerFollow';
 
 const DAY_IN_MILSEC = 86400000;
 const QUARTER_IN_MILSEC = 900000;
@@ -275,15 +274,29 @@ class UserController {
     }
 
     async getUserInfo(req: express.Request, res: express.Response) {
-        const userId = req.headers.id;
-        const user = await userService.findUserByQuery({ _id: userId as string });
-        if (user) {
+        const id: string = req.params.id as string;
+        const currentUserId = req.headers.id;
+        const currentUser = currentUserId ? await userService.findUserByQuery({ _id: currentUserId as string }) : null;
+        const userInfo = await userService.findUserByQuery({ _id: id });
+        if (currentUser && userInfo && (currentUser.type === USER_TYPE.SUPER || userInfo._id.toString() === currentUserId)) {
             return res.status(200).json({
-                bio: user.bio,
-                filename: user.filename,
-                email: user.email,
-                name: user.name,
+                id,
+                bio: userInfo.bio,
+                filename: userInfo.filename,
+                email: userInfo.email,
+                name: userInfo.name,
             });
+        } else {
+           if (userInfo) {
+               return res.status(200).json({
+                   id,
+                   bio: userInfo.bio,
+                   filename: userInfo.filename,
+                   name: userInfo.name,
+               });
+           } else return res.status(200).json({
+               id,
+           });
         }
     }
 
@@ -340,7 +353,7 @@ class UserController {
 
         userToChange.save();
 
-        return res.status(200).send();
+        return res.status(200).send({});
     }
 
     async followUser(req: express.Request, res: express.Response) {
@@ -356,15 +369,30 @@ class UserController {
         }
 
         await followerFollowService.follow({follow, follower: userId} as FollowerFollowModel);
-        return res.status(200).send();
+        return res.status(200).send({});
+    }
+
+    async doIFollowUser(req: express.Request, res: express.Response) {
+        const userId = req.headers.id as string;
+        const followId = req.params.id;
+        const followUser = await userService.findUserByQuery({_id: followId as string}) as UserModel;
+
+        if(!followUser) {
+            return res.status(404).send({
+                type: 'ERROR',
+                message: 'User not found'
+            });
+        }
+
+        const follow = await followerFollowService.findFollower(followId, userId);
+        res.status(200).send(!!follow)
     }
 
     async unFollowUser(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
         const follow = req.params.id;
-        
         await followerFollowService.unfollow(userId, follow);
-        return res.status(200).send();
+        return res.status(200).send({});
     }
 }
 

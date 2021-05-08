@@ -7,15 +7,16 @@ class FollowerFollowService {
         })
     }
 
-    follow(folllowFollower: FollowerFollowModel){
-        return FollowerFollow.create(folllowFollower);
+    findFollower(id: string, followerId: string){
+        return FollowerFollow.findOne({$and: [{follow: id}, {follower: followerId}]})
+    }
+
+    follow(followFollower: FollowerFollowModel){
+        return FollowerFollow.create(followFollower);
     }
     
     unfollow(followerId: string, followId: string) {
-        return FollowerFollow.deleteOne({
-            follow: followId,
-            follower: followerId
-        })
+        return FollowerFollow.deleteOne({$and: [{follow: followId}, {follower: followerId}]})
     }
 }
 

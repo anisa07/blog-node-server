@@ -94,8 +94,8 @@ class PostController {
     async updatePost(req: express.Request, res: express.Response) {
         const postId: string = req.params.id as string;
         const userId = req.headers.id as string;
-        const filename = req.file?.filename || '';
-        const {title, text} = req.body;
+        const filename = req.file?.filename || req.body.filename || '';
+        const {title, text, labels} = req.body;
         const user = await userService.findUserByQuery({_id: userId as string});
         const post = await postService.findPostBy({_id: postId}) as PostModel;
 
@@ -121,19 +121,26 @@ class PostController {
         }
 
         const oldFile = post.filename || '';
-        if (filename && oldFile) {
+        if (filename && oldFile && filename !== oldFile) {
             await gfsService.deleteItem(oldFile, res, filename);
+        }
+
+        if (!filename && oldFile) {
+            await gfsService.deleteItem(oldFile, res);
         }
 
         const updatePost = {
             author: post.author,
-            filename: filename || oldFile,
+            filename: filename,
             title: title || post.title,
             text: text || post.text
         } as unknown as PostModel;
 
         try {
             await postService.updatePost(postId, updatePost);
+            for (let l of (JSON.parse(labels) || [])) {
+                await labelToPostService.addLabelToPost({label: l.id, post: postId} as LabelToPostModel)
+            }
             return res.status(200).send({
                 id: postId
             })
