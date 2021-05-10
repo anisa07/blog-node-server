@@ -252,24 +252,18 @@ class UserController {
     async updateUserInfo(req: express.Request, res: express.Response) {
         const userId = req.headers.id;
         const user = await userService.findUserByQuery({ _id: userId as string });
-        if (!req.file) {
-            return res.status(404).send({
-                type: 'ERROR',
-                message: 'Photo is not attached'
-            });
-        }
+        const filename = req.file?.filename || '';
+
         if (user) {
             const oldFile = user.filename;
-            if (user.filename) {
-                await gfsService.deleteItem(oldFile, res, req.file.filename);
+            if (oldFile && filename && filename !== oldFile) {
+                await gfsService.deleteItem(oldFile, res, filename);
             }
+            user.name = req.body.name;
             user.bio = req.body.bio;
-            user.filename = req.file.filename;
+            user.filename = filename || oldFile;
             await user.save();
-            return res.status(200).json({
-                bio: user.bio,
-                filename: user.filename,
-            });
+            return res.status(200).json({});
         }
     }
 
