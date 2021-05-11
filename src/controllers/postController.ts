@@ -317,7 +317,6 @@ class PostController {
         const lastReviewDate = user.lastReviewDate || 0;
         user.lastReviewDate = new Date();
         await user.save();
-
         const followUsers = await followerFollowService.findFollow(userId);
         let followPosts = {} as PaginateResult<PostModel>;
         for (let follow of followUsers) {
