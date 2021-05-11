@@ -15,6 +15,7 @@ import {LabelModel} from '../models/Label';
 import {POSTS_LIST_SIZE} from '../utils/constants';
 import {getCommentsData} from "./commentController";
 import {PaginateResult} from 'mongoose';
+const ObjectID = require('mongodb').ObjectID;
 
 const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
     if (post) {
@@ -313,35 +314,34 @@ class PostController {
         const userId = req.headers.id as string;
         const user = await userService.findUserByQuery({_id: userId as string}) as UserModel;
         const postsData: any[] = [];
+        const lastReviewDate = user.lastReviewDate || 0;
+        user.lastReviewDate = new Date();
+        await user.save();
 
-        if (!user) {
-            return res.status(404).send({
-                type: 'ERROR',
-                message: 'User not found'
-            });
-        }
-
-        const lastReviewDate = user.lastReviewDate;
         const followUsers = await followerFollowService.findFollow(userId);
+        let followPosts = {} as PaginateResult<PostModel>;
         for (let follow of followUsers) {
-            let followPosts = {} as PaginateResult<PostModel>;
             followPosts = await postService.findPostsBy({
                 query: {
-                    author: follow, "updatedAt": {
-                        $gte: lastReviewDate
-                    }
+                    author: new ObjectID("604fe282117c4d20bcc458ba"),
+                    updatedAt: {$gte: new Date(lastReviewDate)}
                 },
                 sort: '-updatedAt',
                 page:  Number(page) || 1,
                 size: Number(size) || POSTS_LIST_SIZE
             });
+
             for (let followPost of followPosts.docs) {
                 const postData = await gatherPostData(followPost);
                 postsData.push(postData);
             }
         }
-        res.status(200).send({
-            posts: postsData
+        return res.status(200).send({
+            posts: postsData,
+            hasNextPage: followPosts.hasNextPage,
+            hasPreviousPage: followPosts.hasPrevPage,
+            totalDocs: followPosts.totalDocs,
+            totalPages: followPosts.totalPages
         })
     }
 }

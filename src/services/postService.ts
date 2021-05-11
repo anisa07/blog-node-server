@@ -1,10 +1,11 @@
 import {Post, PostModel} from '../models/Post';
 
 interface FindPostBy {
-    query: {[key:string]: any},
+    query?: { [key: string]: any },
     text?: string,
-    sort: {[key:string]: any} | string,
-    page: number, size: number,
+    sort?: { [key: string]: any } | string,
+    page?: number,
+    size: number,
     searchBy?: string
 }
 
@@ -29,14 +30,14 @@ class PostService {
     }
 
     findPostsBy(findBy: FindPostBy) {
-        return Post.paginate(findBy.query,{
+        return Post.paginate(findBy.query, {
             sort: findBy.sort,
             page: findBy.page,
             limit: findBy.size
         })
     }
 
-    findPostBy(query: {[key:string]: string}) {
+    findPostBy(query: { [key: string]: string }) {
         return Post.findOne(query);
     }
 
@@ -44,7 +45,7 @@ class PostService {
         return Post.create(post);
     }
 
-    deletePost(id: string){
+    deletePost(id: string) {
         return Post.findOneAndDelete({_id: id});
     }
 

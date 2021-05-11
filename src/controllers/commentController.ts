@@ -8,14 +8,9 @@ import {PaginateResult} from "mongoose";
 
 export const getCommentsData = async (query: { updatedAt?: any, size?: any, postId?: string, page?: any }) => {
     const searchQuery: any = {}
-    let showMoreComments = false;
     const commentsListSize = Number(query.size) || COMMENTS_LIST_SIZE;
     const commentPage = Number(query.page) || 1;
     let data: PaginateResult<CommentModel>;
-
-    // if (query.updatedAt) {
-    //     searchQuery.updatedAt = {$lt: query.updatedAt};
-    // }
 
     searchQuery.post = query.postId;
 

@@ -9,7 +9,7 @@ export type UserModel = mongoose.Document & {
     bio: string;
     photo: any;
     filename: string;
-    lastReviewDate: number;
+    lastReviewDate: any;
   };  
 
 export enum STATE {
