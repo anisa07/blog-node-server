@@ -311,6 +311,16 @@ class UserController {
         return res.status(200).send();
     }
 
+    async deleteUser(req: express.Request, res: express.Response) {
+        const userId = req.headers.id;
+        const user = await userService.findUserByQuery({ _id: userId as string });
+        if (user && user.state === STATE.ACTIVE) {
+            user.state = STATE.DELETED;
+            user.save();
+        }
+        return res.status(200).send();
+    }
+
     async manageUserData(req: express.Request, res: express.Response) {
         const {state, bio, removePhoto, filename, id} = req.body;
         const userIdToChange = id;
