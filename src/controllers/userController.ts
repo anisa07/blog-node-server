@@ -381,12 +381,21 @@ class UserController {
         const followId = req.params.id;
         const followUser = await userService.findUserByQuery({_id: followId as string}) as UserModel;
 
+        if(!userId) {
+            return res.status(401).send({
+                type: 'ERROR',
+                message: 'Not authorised'
+            });
+        }
+
         if(!followUser) {
             return res.status(404).send({
                 type: 'ERROR',
                 message: 'User not found'
             });
         }
+
+        console.log(userId)
 
         const follow = await followerFollowService.findFollower(followId, userId);
         res.status(200).send(!!follow)
