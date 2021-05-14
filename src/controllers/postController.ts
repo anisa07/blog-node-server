@@ -1,11 +1,11 @@
-import express, {query} from 'express';
+import express from 'express';
 import {userService} from '../services/userService';
 import {PostModel} from '../models/Post';
 import {postService} from '../services/postService';
 import {commentService} from '../services/commentService';
 import {likeService} from '../services/likeService';
 import {gfsService} from '../services/gfsService';
-import {UserModel} from '../models/User';
+import {USER_TYPE, UserModel} from '../models/User';
 import {LikeModel} from '../models/Like';
 import {labelToPostService} from '../services/labeToPostService';
 import {followerFollowService} from '../services/followFollowerService';
@@ -114,7 +114,7 @@ class PostController {
             });
         }
 
-        if (post.author.toString() !== userId) {
+        if (post.author.toString() !== userId && user.type !== USER_TYPE.SUPER) {
             return res.status(401).send({
                 type: 'ERROR',
                 message: 'This user is not authorised to change this post'

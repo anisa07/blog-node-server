@@ -279,6 +279,8 @@ class UserController {
                 filename: userInfo.filename,
                 email: userInfo.email,
                 name: userInfo.name,
+                type: userInfo.type,
+                state: userInfo.state
             });
         } else {
            if (userInfo) {
@@ -287,6 +289,8 @@ class UserController {
                    bio: userInfo.bio,
                    filename: userInfo.filename,
                    name: userInfo.name,
+                   type: userInfo.type,
+                   state: userInfo.state
                });
            } else return res.status(200).json({
                id,
@@ -327,6 +331,7 @@ class UserController {
         const superUserId = req.headers.id;
         const superUser = await userService.findUserByQuery({ _id: superUserId as string });
         const userToChange = await userService.findUserByQuery({ _id: userIdToChange as string });
+
         if (!userToChange) {
             return res.status(404).send({
                 type: 'ERROR',
@@ -394,8 +399,6 @@ class UserController {
                 message: 'User not found'
             });
         }
-
-        console.log(userId)
 
         const follow = await followerFollowService.findFollower(followId, userId);
         res.status(200).send(!!follow)
