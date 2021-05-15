@@ -11,7 +11,6 @@ import {followerFollowService} from '../services/followFollowerService';
 import {FollowerFollowModel} from '../models/FollowerFollow';
 import {POSTS_LIST_SIZE} from "../utils/constants";
 import {PaginateResult} from "mongoose";
-import {PostModel} from "../models/Post";
 
 const DAY_IN_MILSEC = 86400000;
 const QUARTER_IN_MILSEC = 900000;
@@ -253,18 +252,23 @@ class UserController {
     }
 
     async updateUserInfo(req: express.Request, res: express.Response) {
-        const userId = req.headers.id;
-        const user = await userService.findUserByQuery({ _id: userId as string });
+        const user = await userService.findUserByQuery({ _id: req.body.id as string });
         const filename = req.file?.filename || '';
-
         if (user) {
             const oldFile = user.filename;
             if (oldFile && filename && filename !== oldFile) {
                 await gfsService.deleteItem(oldFile, res, filename);
+                user.filename = filename;
+            }
+            if (!filename && oldFile) {
+                await gfsService.deleteItem(oldFile, res);
+                user.filename = '';
+            }
+            if (filename && !oldFile) {
+                user.filename = filename;
             }
             user.name = req.body.name;
             user.bio = req.body.bio;
-            user.filename = filename || oldFile;
             await user.save();
             return res.status(200).json({});
         }
@@ -319,8 +323,20 @@ class UserController {
     }
 
     async deleteUser(req: express.Request, res: express.Response) {
-        const userId = req.headers.id;
+        const currentUserId = req.headers.id;
+        const userId = req.params.id;
         const user = await userService.findUserByQuery({ _id: userId as string });
+        const currentUser = await userService.findUserByQuery({ _id: currentUserId as string });
+
+        if (!currentUser ||
+            ((user.type === USER_TYPE.SUPER || currentUser.type !== USER_TYPE.SUPER)
+                && currentUserId !== userId)) {
+            return res.status(401).send({
+                type: 'ERROR',
+                message: 'Not authorised'
+            });
+        }
+
         if (user && user.state === STATE.ACTIVE) {
             user.state = STATE.DELETED;
             user.save();
@@ -342,8 +358,8 @@ class UserController {
             });
         }
         
-        if (!superUser || superUser.type.toUpperCase() !== USER_TYPE.SUPER
-        || userToChange.type === USER_TYPE.SUPER || userIdToChange === superUserId) {
+        if (!superUser || ((superUser.type !== USER_TYPE.SUPER
+        || userToChange.type === USER_TYPE.SUPER) && userIdToChange !== superUserId)) {
             return res.status(401).send({
                 type: 'ERROR',
                 message: 'Not authorised'
@@ -454,7 +470,10 @@ class UserController {
         // get likes
 
         return res.status(200).send({
-            users: data.docs,
+            users: data.docs.map(item => {
+                item.id = item._id;
+                return item;
+            }),
             hasNextPage: data.hasNextPage,
             hasPreviousPage: data.hasPrevPage,
             totalDocs: data.totalDocs,

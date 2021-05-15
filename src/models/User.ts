@@ -11,6 +11,7 @@ export type UserModel = mongoose.Document & {
     photo: any;
     filename: string;
     lastReviewDate: any;
+    id: string;
 };
 
 export enum STATE {
@@ -25,6 +26,9 @@ export enum USER_TYPE {
 }
 
 export const userSchema = new Schema({
+        id: {
+            type: String,
+        },
         name: {
             type: String,
             required: true,

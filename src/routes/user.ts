@@ -30,7 +30,7 @@ router.post('/user-info', auth, active, upload.single('photo'), userController.u
 router.get('/user-info/:id', userController.getUserInfo);
 router.get('/user-photo/:filename', userController.getUserPhoto);
 router.delete('/user-photo/:filename', auth, active, userController.deletePhoto);
-router.delete('/user', auth, active, userController.deleteUser);
+router.delete('/user/:id', auth, active, userController.deleteUser);
 
 // manage-user
 router.post('/manage-user', auth, active, userController.manageUserData);
