@@ -40,5 +40,6 @@ router.delete('/follow/:id', auth, active, userController.unFollowUser);
 router.get('/follow/posts', auth, active, postController.showFollowPosts);
 router.get('/follow/:id', userController.doIFollowUser);
 
+router.get('/users', auth, active, userController.getUsersBy);
 
 export default router;

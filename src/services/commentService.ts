@@ -1,5 +1,4 @@
 import {Comment, CommentModel} from '../models/Comment';
-import {Post} from "../models/Post";
 
 class CommentService {
     findCommentBy(query: {[key:string]: string}) {

@@ -9,6 +9,9 @@ import {gfsService} from '../services/gfsService';
 import {STATE, USER_TYPE, UserModel} from '../models/User';
 import {followerFollowService} from '../services/followFollowerService';
 import {FollowerFollowModel} from '../models/FollowerFollow';
+import {POSTS_LIST_SIZE} from "../utils/constants";
+import {PaginateResult} from "mongoose";
+import {PostModel} from "../models/Post";
 
 const DAY_IN_MILSEC = 86400000;
 const QUARTER_IN_MILSEC = 900000;
@@ -326,8 +329,8 @@ class UserController {
     }
 
     async manageUserData(req: express.Request, res: express.Response) {
-        const {state, bio, removePhoto, filename, id} = req.body;
-        const userIdToChange = id;
+        const {state, bio, removePhoto, filename, _id, type} = req.body;
+        const userIdToChange = _id;
         const superUserId = req.headers.id;
         const superUser = await userService.findUserByQuery({ _id: superUserId as string });
         const userToChange = await userService.findUserByQuery({ _id: userIdToChange as string });
@@ -358,6 +361,10 @@ class UserController {
 
         if (state && Object.values(STATE).includes(state)) {
             userToChange.state = state; 
+        }
+
+        if (type && Object.values(USER_TYPE).includes(type)) {
+            userToChange.type = type;
         }
 
         userToChange.save();
@@ -409,6 +416,50 @@ class UserController {
         const follow = req.params.id;
         await followerFollowService.unfollow(userId, follow);
         return res.status(200).send({});
+    }
+
+    async getUsersBy(req: express.Request, res: express.Response) {
+        const {size, searchText, page} = req.query;
+        const userId = req.headers.id as string;
+        const currentUser = await userService.findUserByQuery({_id: userId as string}) as UserModel;
+        const usersListSize = Number(size) || POSTS_LIST_SIZE;
+        const usersPage = Number(page) || 1;
+
+        if (!currentUser || currentUser.type !== USER_TYPE.SUPER) {
+            return res.status(403).send({
+                    type: 'ERROR',
+                    message: 'This user cannot get these data!'
+                }
+            );
+        }
+
+        let data: PaginateResult<UserModel>;
+        // let usersData: {data: PaginateResult<UserModel>, commentsCount: number, labelsCount: number, postCounts: number};
+        const query = {
+            sort: '-updatedAt',
+            text: searchText as string || '',
+            page: usersPage,
+            size: usersListSize
+        }
+
+        data = await userService.findUsersByQuery(query);
+        // for (const u of data.docs) {
+        //
+        // }
+        //
+        //
+        // get number of comments per user
+        // get user labels
+        // get user number of posts
+        // get likes
+
+        return res.status(200).send({
+            users: data.docs,
+            hasNextPage: data.hasNextPage,
+            hasPreviousPage: data.hasPrevPage,
+            totalDocs: data.totalDocs,
+            totalPages: data.totalPages
+        })
     }
 }
 
