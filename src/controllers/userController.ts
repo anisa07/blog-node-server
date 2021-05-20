@@ -29,6 +29,33 @@ const encryptPassword = async (password: string) => {
     return bcrypt.hash(password, salt);
 }
 
+export const isAuth = async (userId: string, token: string) => {
+    if (!userId) {
+        return false
+    }
+
+    const user = await userService.findUserByQuery({ _id: userId as string });
+
+    if (!user) {
+        return false
+    }
+
+    const salt = await redisService.getItem(userId as string);
+
+    if (!salt) {
+        return false
+    }
+
+    try {
+        const decodedToken = jwt.verify(token, salt) as { exp: number, userId: string };
+        return decodedToken.userId === userId;
+
+    } catch (e) {
+        return false
+    }
+}
+
+
 class UserController {
     async signup(req: express.Request, res: express.Response) {
         const password = req.body.password;
@@ -154,37 +181,6 @@ class UserController {
         }
     }
 
-    async isAuth(req: express.Request, res: express.Response) {
-        const token = (req.headers.authorization || '').split(' ')[1];
-        const userId = req.headers.id;
-
-        if (!userId) {
-            return res.status(200).send(false);
-        }
-
-        const user = await userService.findUserByQuery({ _id: userId as string });
-
-        if (!user) {
-            return res.status(200).send(false);
-        }
-
-        const salt = await redisService.getItem(userId as string);
-        
-        if (!salt) {
-            return res.status(200).send(false);
-        }
-
-        try {
-            const decodedToken = jwt.verify(token, salt) as { exp: number, userId: string };
-            if (decodedToken.userId === userId) {
-                return res.status(200).send(true);
-            }
-            return res.status(200).send(false);
-        } catch (e) {
-            res.status(200).send(false);
-        }
-    }
-
     async forgotPassword(req: express.Request, res: express.Response) {
         const { email } = req.body;
         const user = await userService.findUserByQuery({ email });
@@ -196,8 +192,8 @@ class UserController {
             });
         }
 
-        const token = await generateToken(email, user.id, QUARTER_IN_MILSEC);
-        const link = `${process.env.CLIENT_URL}/password-reset?token=${token}&id=${user.id}`;
+        const token = await generateToken(email, user._id, QUARTER_IN_MILSEC);
+        const link = `${process.env.CLIENT_URL}/user/reset-password?token=${token}&id=${user._id}`;
         try {
             await sendEmail(email, { name: user.name, link }, res);
         } catch (error) {
@@ -208,10 +204,20 @@ class UserController {
         }
     }
 
+    async isAuth(req: express.Request, res: express.Response) {
+        const token = (req.headers.authorization || '').split(' ')[1];
+        const userId = req.headers.id as string;
+        const auth = await isAuth(userId, token);
+
+        return res.status(200).send(auth);
+    }
+
     async changePassword(req: express.Request, res: express.Response) {
-        const { token, password } = req.body;
-        const id = req.headers.id as string;
-        const user = await userService.findUserByQuery({ _id: id });
+        const headersId = req.headers.id;
+        const { password, id } = req.body;
+        const token = (req.headers.authorization || '').split(' ')[1] || req.body?.token;
+        const userId = id || headersId;
+        const user = await userService.findUserByQuery({ _id: userId });
 
         if (!password || !passwordRegexp.test(password)) {
             return res.status(400).send({
@@ -227,28 +233,36 @@ class UserController {
             });
         }
 
-        const salt = await redisService.getItem(id);
-        if (!salt) {
-            return res.status(401).send({
-                type: 'ERROR',
-                message: 'Not authorised'
-            });
+        const userIsAuth = await isAuth(userId, token);
+        if (!userIsAuth) {
+            const salt = await redisService.getItem(userId);
+            if (!salt) {
+                return res.status(401).send({
+                    type: 'ERROR',
+                    message: 'Not authorised'
+                });
+            }
+
+            try {
+                const decodedToken = jwt.verify(token, salt) as { exp: number, userId: string };
+                if (decodedToken.userId === userId) {
+                    user.password = await encryptPassword(password);
+                    await user.save();
+                    await redisService.delItem(userId);
+                    return res.status(200).send();
+                }
+            } catch (e) {
+                return res.status(401).send({
+                    type: 'ERROR',
+                    message: 'Not authorised'
+                });
+            }
+        } else {
+            user.password = await encryptPassword(password);
+            await user.save();
+            return res.status(200).send();
         }
 
-        try {
-            const decodedToken = jwt.verify(token, salt) as { exp: number, userId: string };
-            if (decodedToken.userId === id) {
-                user.password = await encryptPassword(password);
-                await user.save();
-                await redisService.delItem(user._id);
-                return res.status(200).send();
-            }
-        } catch (e) {
-            return res.status(401).send({
-                type: 'ERROR',
-                message: 'Not authorised'
-            });
-        }
     }
 
     async updateUserInfo(req: express.Request, res: express.Response) {

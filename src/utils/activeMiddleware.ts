@@ -5,10 +5,11 @@ import { userService } from '../services/userService';
 
 export const active = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     let searchQuery = null;
+    let id = req.headers.id || req.body?.id;
     
-    if (req.headers.id) {
-        searchQuery = { _id: req.headers.id as string }
-    } else if (req.body.email) {
+    if (id) {
+        searchQuery = { _id: id as string }
+    } else if (req.body?.email) {
         searchQuery = { email: req.body.email }
     }
 
