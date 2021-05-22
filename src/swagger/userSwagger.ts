@@ -16,6 +16,26 @@ export const loginPayload = {
     }
 }
 
+export const signupPayload = {
+    type: "object",
+    required: [
+        "email",
+        "password",
+        "name"
+    ],
+    properties: {
+        email: {
+            type: "string"
+        },
+        password: {
+            type: "string"
+        },
+        name: {
+            type: "string"
+        },
+    }
+}
+
 export const loginResponse = {
     "type": "object",
     properties: {
@@ -57,6 +77,39 @@ export const isAuth = {
     }
 }
 
+export const signup = {
+    tags: ['User'],
+    summary: "Signup user",
+    operationId: 'signup',
+    requestBody: {
+        content: {
+            "application/json": {
+                schema: signupPayload
+            }
+        },
+        required: true
+    },
+    responses: {
+        "200": {
+            description: "signup response",
+            content: {
+                "application/json": {
+                    schema: loginResponse
+                }
+            }
+        },
+        "400": {
+            description: "User data is incorrect: password could be weak, or email format is incorrect"
+        },
+        "409": {
+            description: "User already exists"
+        },
+        "500": {
+            description: "Server error"
+        },
+    }
+}
+
 export const login = {
     tags: ['User'],
     summary: "Login user",
@@ -71,7 +124,7 @@ export const login = {
     },
     responses: {
         "200": {
-            description: "login payload",
+            description: "login response",
             content: {
                 "application/json": {
                     schema: loginResponse

@@ -1,18 +1,18 @@
-import {isAuth, login, loginPayload} from "./swagger/userSwagger";
+import {isAuth, login, signup} from "./swagger/userSwagger";
 
 export const swaggerDocument = {
     openapi: '3.0.1',
     info: {
         version: '1.0.0',
         title: 'APIs Document',
-        description: '',
+        description: `Download [swagger.json](${process.env.ORIGIN}:${process.env.PORT}/${process.env.API_VERSION}/api-docs/download/swagger/json)`,
         termsOfService: '',
         contact: {
             name: '',
             email: '',
             url: ''
         },
-        "license": {
+        license: {
             "name": "Apache 2.0",
             "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
         }
@@ -56,6 +56,9 @@ export const swaggerDocument = {
         },
         "/login": {
             "post": login,
+        },
+        "/signup": {
+            "post": signup
         }
     },
 }
