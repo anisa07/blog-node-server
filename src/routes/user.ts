@@ -1,12 +1,12 @@
 import { Router } from 'express';
-import swaggerUi from 'swagger-ui-express';
-import { swaggerDocument } from '../swagger';
+// import swaggerUi from 'swagger-ui-express';
+// import { swaggerDocument } from '../swagger';
 import postController from '../controllers/postController';
 import userController from '../controllers/userController';
 import { upload } from '../dbs/mongoDb';
 import { active } from '../utils/activeMiddleware';
 import { auth } from '../utils/authMiddleware';
-import * as fs from "fs";
+// import * as fs from "fs";
 
 const router = Router(); 
 
@@ -45,21 +45,4 @@ router.get('/follow/:id', userController.doIFollowUser);
 
 router.get('/users', auth, active, userController.getUsersBy);
 
-router.use('/api-docs', swaggerUi.serve);
-router.get('/api-docs', swaggerUi.setup(swaggerDocument));
-
-router.get('/api-docs/download/swagger/json', (req, res) => {
-    const swagger = JSON.stringify(swaggerDocument);
-    const dir = `${__dirname}/${process.env.API_VERSION}`;
-    if (!fs.existsSync(dir)){
-        fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFile(`${dir}/swagger.json`, swagger, (err) => {
-        if(err) {
-            return console.log(err);
-        }
-        const file = `${__dirname}/${process.env.API_VERSION}/swagger.json`;
-        res.download(file);
-    });
-})
 export default router;

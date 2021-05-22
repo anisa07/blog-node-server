@@ -7,6 +7,7 @@ import postRouter from './routes/post';
 import labelRouter from './routes/label';
 import commentRouter from './routes/comment';
 import likeRouter from './routes/like';
+import apiRouter from './routes/api';
 import connectDb from './dbs/mongoDb';
 import redisClient from './dbs/redisDb';
 
@@ -25,6 +26,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(`/${process.env.API_VERSION}`, userRouter);
+app.use(`/${process.env.API_VERSION}/api-docs`, apiRouter);
 app.use(`/${process.env.API_VERSION}/post`, postRouter);
 app.use(`/${process.env.API_VERSION}/label`, labelRouter);
 app.use(`/${process.env.API_VERSION}/comment`, commentRouter);
