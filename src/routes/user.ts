@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerDocument } from '../swagger';
 import postController from '../controllers/postController';
 import userController from '../controllers/userController';
 import { upload } from '../dbs/mongoDb';
@@ -41,5 +43,8 @@ router.get('/follow/posts', auth, active, postController.showFollowPosts);
 router.get('/follow/:id', userController.doIFollowUser);
 
 router.get('/users', auth, active, userController.getUsersBy);
+
+router.use('/api-docs', swaggerUi.serve);
+router.get('/api-docs', swaggerUi.setup(swaggerDocument));
 
 export default router;

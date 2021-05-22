@@ -49,7 +49,6 @@ export const isAuth = async (userId: string, token: string) => {
     try {
         const decodedToken = jwt.verify(token, salt) as { exp: number, userId: string };
         return decodedToken.userId === userId;
-
     } catch (e) {
         return false
     }
@@ -154,7 +153,7 @@ class UserController {
         } catch (e) {
             return res.status(500).send({
                 type: 'ERROR',
-                message: 'Error occurs during login'
+                message: 'Server error occurs during login'
             });
         }
     }
