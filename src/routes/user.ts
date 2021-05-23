@@ -4,7 +4,6 @@ import userController from '../controllers/userController';
 import { upload } from '../dbs/mongoDb';
 import { active } from '../utils/activeMiddleware';
 import { auth } from '../utils/authMiddleware';
-
 const router = Router(); 
 
 // // Login

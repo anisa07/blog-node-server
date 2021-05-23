@@ -11,11 +11,13 @@ export const auth = async (req: express.Request, res: express.Response, next: ex
         const auth = await isAuth(userId, token);
         if (auth) {
             next();
+        } else {
+            return res.status(401).send({
+                type: 'ERROR',
+                message: 'Not authorised'
+            });
         }
-        return res.status(401).send({
-            type: 'ERROR',
-            message: 'Not authorised'
-        });
+
         // if (!userId) {
         //     return res.status(401).send({
         //         type: 'ERROR',

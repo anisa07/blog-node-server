@@ -14,9 +14,9 @@ export const active = async (req: express.Request, res: express.Response, next: 
     }
 
     if (!searchQuery) {
-        return res.status(401).send({
+        return res.status(400).send({
             type: 'ERROR',
-            message: 'User not authorised'
+            message: 'Payload is incorrect'
         });
     }
 
@@ -29,7 +29,7 @@ export const active = async (req: express.Request, res: express.Response, next: 
     }
 
     if (user.state !== STATE.ACTIVE) {
-        return res.status(401).send({
+        return res.status(403).send({
             type: 'ERROR',
             message: 'User is deleted or blocked'
         });

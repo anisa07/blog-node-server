@@ -49,7 +49,6 @@ export const isAuth = async (userId: string, token: string) => {
     try {
         const decodedToken = jwt.verify(token, salt) as { exp: number, userId: string };
         return decodedToken.userId === userId;
-
     } catch (e) {
         return false
     }
@@ -154,7 +153,7 @@ class UserController {
         } catch (e) {
             return res.status(500).send({
                 type: 'ERROR',
-                message: 'Error occurs during login'
+                message: 'Server error occurs during login'
             });
         }
     }
@@ -229,7 +228,7 @@ class UserController {
         if (!user) {
             return res.status(404).send({
                 type: 'ERROR',
-                message: 'User does not exist'
+                message: 'User not found'
             });
         }
 
@@ -237,7 +236,7 @@ class UserController {
         if (!userIsAuth) {
             const salt = await redisService.getItem(userId);
             if (!salt) {
-                return res.status(401).send({
+                return res.status(403).send({
                     type: 'ERROR',
                     message: 'Not authorised'
                 });
@@ -252,7 +251,7 @@ class UserController {
                     return res.status(200).send();
                 }
             } catch (e) {
-                return res.status(401).send({
+                return res.status(403).send({
                     type: 'ERROR',
                     message: 'Not authorised'
                 });
@@ -268,23 +267,30 @@ class UserController {
     async updateUserInfo(req: express.Request, res: express.Response) {
         const user = await userService.findUserByQuery({ _id: req.body.id as string });
         const filename = req.file?.filename || '';
-        if (user) {
-            const oldFile = user.filename;
-            if (oldFile && filename && filename !== oldFile) {
-                await gfsService.deleteItem(oldFile, res, filename);
-                user.filename = filename;
+        try {
+            if (user) {
+                const oldFile = user.filename;
+                if (oldFile && filename && filename !== oldFile) {
+                    await gfsService.deleteItem(oldFile, res, filename);
+                    user.filename = filename;
+                }
+                if (!filename && oldFile) {
+                    await gfsService.deleteItem(oldFile, res);
+                    user.filename = '';
+                }
+                if (filename && !oldFile) {
+                    user.filename = filename;
+                }
+                user.name = req.body.name;
+                user.bio = req.body.bio;
+                await user.save();
+                return res.status(200).json({});
             }
-            if (!filename && oldFile) {
-                await gfsService.deleteItem(oldFile, res);
-                user.filename = '';
-            }
-            if (filename && !oldFile) {
-                user.filename = filename;
-            }
-            user.name = req.body.name;
-            user.bio = req.body.bio;
-            await user.save();
-            return res.status(200).json({});
+        } catch (e) {
+            return res.status(500).send({
+                type: 'ERROR',
+                message: 'Server error'
+            });
         }
     }
 
