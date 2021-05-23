@@ -54,17 +54,38 @@ export const loginResponse = {
     }
 }
 
+export const security = [
+    {
+        bearerAuth: []
+    }
+]
+
+export const headerIdRequired = {
+    name: "id",
+    in: "header",
+    description: "set logged in user id here",
+    required: true,
+    type: "string"
+}
+
+export const headerIdOptional = {
+    name: "id",
+    in: "header",
+    description: "if user is logged in, set user id here",
+    required: false,
+    type: "string"
+}
+
 export const updateUserInfo = {
     tags: ['User'],
     summary: 'Update user info',
     operationId: 'updateUserInfo',
-    security: [
-        {
-            bearerAuth: []
-        }
-    ],
+    security,
     "consumes": [
         "multipart/form-data", "application/json"
+    ],
+    parameters: [
+        headerIdRequired,
     ],
     requestBody: {
         content: {
@@ -145,10 +166,9 @@ export const logout = {
     tags: ['User'],
     summary: 'Logout user',
     operationId: 'logout',
-    security: [
-        {
-            bearerAuth: []
-        }
+    security,
+    parameters: [
+        headerIdRequired,
     ],
     requestBody: {
         content: {
@@ -178,11 +198,10 @@ export const changePassword = {
     tags: ['User'],
     summary: "Change password",
     operationId: "changePassword",
-    security: [
-        {
-            bearerAuth: []
-        }
+    parameters: [
+        headerIdOptional,
     ],
+    security,
     requestBody: {
         content: {
             "application/json": {
@@ -230,10 +249,9 @@ export const isAuth = {
     tags: ['User'],
     description: "Returns if user logged in or not",
     operationId: 'isAuth',
-    security: [
-        {
-            bearerAuth: []
-        }
+    security,
+    parameters: [
+        headerIdOptional,
     ],
     responses: {
         "200": {
@@ -242,6 +260,86 @@ export const isAuth = {
                 "application/json": {
                     schema: {
                         type: "boolean",
+                    }
+                }
+            }
+        }
+    }
+}
+
+export const deleteUserPhoto = {
+    tags: ['User'],
+    summary: "Delete user photo",
+    security,
+    parameters: [
+        headerIdRequired,
+        {
+            "name": "filename",
+            "in": "path",
+            "description": "user photo encoded name",
+            "required": true,
+            "schema": {
+                "type": "string",
+            }
+        },
+    ],
+    responses: {
+        "200": {
+            description: "delete user photo response",
+        },
+        "500": {
+            description: "Server error"
+        },
+    }
+}
+
+export const getUserInfo = {
+    tags: ['User'],
+    summary: "Get user info",
+    operationId: 'getUserInfo',
+    security,
+    parameters: [
+        headerIdOptional,
+        {
+            "name": "id",
+            "in": "path",
+            "description": "user id to get info",
+            "required": true,
+            "schema": {
+                "type": "string",
+            }
+        },
+    ],
+    responses: {
+        "200": {
+            description: "User info",
+            "content": {
+                "application/json": {
+                    schema: {
+                        "type": "object",
+                        properties: {
+                            id: {
+                                type: 'string'
+                            },
+                            bio: {
+                                type: 'string'
+                            },
+                            filename: {
+                                type: 'string'
+                            },
+                            email: {
+                                type: 'string'
+                            },
+                            name: {
+                                type: 'string'
+                            },
+                            type: {
+                                type: 'string'
+                            },
+                            state: {
+                                type: 'string'
+                            }
+                        }
                     }
                 }
             }
@@ -269,12 +367,6 @@ export const signup = {
                     schema: loginResponse
                 }
             }
-        },
-        "400": {
-            description: "User data is incorrect: password could be weak, or email format is incorrect"
-        },
-        "409": {
-            description: "User already exists"
         },
         "500": {
             description: "Server error"
@@ -310,5 +402,31 @@ export const login = {
             description: "Server error"
         },
         ...activeErrors
+    }
+}
+
+export const deleteUser = {
+    tags: ['User'],
+    summary: "Delete user photo",
+    security,
+    parameters: [
+        headerIdRequired,
+        {
+            "name": "id",
+            "in": "path",
+            "description": "user id to delete",
+            "required": true,
+            "schema": {
+                "type": "string",
+            }
+        },
+    ],
+    responses: {
+        "200": {
+            description: "User deleted",
+        },
+        "500": {
+            description: "Server error"
+        },
     }
 }

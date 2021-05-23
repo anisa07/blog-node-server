@@ -1,4 +1,14 @@
-import {isAuth, login, signup, logout, forgotPassword, changePassword, updateUserInfo} from "./swagger/userSwagger";
+import {
+    isAuth,
+    login,
+    signup,
+    logout,
+    forgotPassword,
+    changePassword,
+    updateUserInfo,
+    getUserInfo,
+    deleteUserPhoto, deleteUser
+} from "./swagger/userSwagger";
 
 export const swaggerDocument = {
     openapi: '3.0.1',
@@ -45,14 +55,6 @@ export const swaggerDocument = {
     paths: {
         "/auth": {
             "get": isAuth,
-            parameters: [
-                {
-                    name: "id",
-                    in: "header",
-                    required: false,
-                    type: "string"
-                },
-            ],
         },
         "/login": {
             "post": login,
@@ -62,39 +64,24 @@ export const swaggerDocument = {
         },
         "/logout": {
             "post": logout,
-            parameters: [
-                {
-                    name: "id",
-                    in: "header",
-                    required: true,
-                    type: "string"
-                },
-            ],
         },
         "/forgot-password": {
             "post": forgotPassword
         },
         "/change-password": {
             "post": changePassword,
-            parameters: [
-                {
-                    name: "id",
-                    in: "header",
-                    required: false,
-                    type: "string"
-                },
-            ],
         },
         "/user-info": {
             "post": updateUserInfo,
-            parameters: [
-                {
-                    name: "id",
-                    in: "header",
-                    required: true,
-                    type: "string"
-                },
-            ],
+        },
+        "/user-info/{id}": {
+            "get": getUserInfo,
+        },
+        "/user-photo/{filename}": {
+            delete: deleteUserPhoto,
+        },
+        "/user/{id}": {
+            delete: deleteUser
         }
     },
 }

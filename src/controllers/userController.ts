@@ -333,7 +333,7 @@ class UserController {
     async deletePhoto(req: express.Request, res: express.Response) {
         const filename = req.params.filename;
         const userId = req.headers.id;
-        const user = await userService.findUserByQuery({ _id: userId as string });
+        const user = await userService.findUserByQuery({ _id: userId as string }) as UserModel;
         await gfsService.deleteItem(filename, res);
         if (user && user.filename === filename) {
             user.filename = "";
