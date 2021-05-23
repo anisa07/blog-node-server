@@ -1,4 +1,4 @@
-import {isAuth, login, signup} from "./swagger/userSwagger";
+import {isAuth, login, signup, logout, forgotPassword, changePassword, updateUserInfo} from "./swagger/userSwagger";
 
 export const swaggerDocument = {
     openapi: '3.0.1',
@@ -59,6 +59,42 @@ export const swaggerDocument = {
         },
         "/signup": {
             "post": signup
+        },
+        "/logout": {
+            "post": logout,
+            parameters: [
+                {
+                    name: "id",
+                    in: "header",
+                    required: true,
+                    type: "string"
+                },
+            ],
+        },
+        "/forgot-password": {
+            "post": forgotPassword
+        },
+        "/change-password": {
+            "post": changePassword,
+            parameters: [
+                {
+                    name: "id",
+                    in: "header",
+                    required: false,
+                    type: "string"
+                },
+            ],
+        },
+        "/user-info": {
+            "post": updateUserInfo,
+            parameters: [
+                {
+                    name: "id",
+                    in: "header",
+                    required: true,
+                    type: "string"
+                },
+            ],
         }
     },
 }

@@ -54,6 +54,178 @@ export const loginResponse = {
     }
 }
 
+export const updateUserInfo = {
+    tags: ['User'],
+    summary: 'Update user info',
+    operationId: 'updateUserInfo',
+    security: [
+        {
+            bearerAuth: []
+        }
+    ],
+    "consumes": [
+        "multipart/form-data", "application/json"
+    ],
+    requestBody: {
+        content: {
+            "application/json": {
+                schema: {
+                    properties: {
+                        id: {
+                            type: "string",
+                            description: "User id to update"
+                        },
+                        name: {
+                            type: "string",
+                            description: "Updated user name"
+                        },
+                        bio: {
+                            type: "string",
+                            description: "Updated user bio"
+                        },
+                        filename: {
+                            type: "string",
+                            description: "User photo to upload",
+                            format: "binary",
+                            paramType : "form",
+                        }
+                    },
+                    required: [
+                        "name",
+                        "id"
+                    ],
+                }
+            }
+        },
+        required: true
+    },
+    responses: {
+        "200": {
+            description: "User info is updated"
+        }
+    }
+}
+
+export const forgotPassword = {
+    tags: ['User'],
+    summary: 'Forgot password',
+    operationId: 'forgotPassword',
+    requestBody: {
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        "email": {
+                            type: 'string'
+                        }
+                    },
+                    required: [
+                        "email",
+                    ],
+                }
+            }
+        },
+        required: true
+    },
+    responses: {
+        "200": {
+            description: "Reset password link is sent, if email is correct",
+        },
+        "404": {
+            description: "User not found",
+        },
+        "500": {
+            description: "Server error"
+        }
+    }
+}
+
+export const logout = {
+    tags: ['User'],
+    summary: 'Logout user',
+    operationId: 'logout',
+    security: [
+        {
+            bearerAuth: []
+        }
+    ],
+    requestBody: {
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {}
+                }
+            }
+        },
+        required: false
+    },
+    responses: {
+        "200": {
+            description: "Auth status",
+        },
+        "404": {
+            description: "User not found",
+        },
+        "500": {
+            description: "Server error"
+        }
+    }
+}
+
+export const changePassword = {
+    tags: ['User'],
+    summary: "Change password",
+    operationId: "changePassword",
+    security: [
+        {
+            bearerAuth: []
+        }
+    ],
+    requestBody: {
+        content: {
+            "application/json": {
+                schema: {
+                    type: "object",
+                    properties: {
+                        "password": {
+                            type: 'string'
+                        },
+                        "id": {
+                            type: 'string'
+                        },
+                        "token": {
+                            type: 'string'
+                        }
+                    },
+                    required: [
+                        "password",
+                    ],
+                }
+            }
+        },
+        required: true
+    },
+    responses: {
+        "200": {
+            description: "Password updated",
+        },
+        "400": {
+            description: "Password is weak"
+        },
+        "403": {
+            description: "Password or email is incorrect"
+        },
+        "404": {
+            description: "User not found",
+        },
+        "500": {
+            description: "Server error"
+        }
+    }
+}
+
 export const isAuth = {
     tags: ['User'],
     description: "Returns if user logged in or not",

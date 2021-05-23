@@ -1,13 +1,9 @@
 import { Router } from 'express';
-// import swaggerUi from 'swagger-ui-express';
-// import { swaggerDocument } from '../swagger';
 import postController from '../controllers/postController';
 import userController from '../controllers/userController';
 import { upload } from '../dbs/mongoDb';
 import { active } from '../utils/activeMiddleware';
 import { auth } from '../utils/authMiddleware';
-// import * as fs from "fs";
-
 const router = Router(); 
 
 // // Login
