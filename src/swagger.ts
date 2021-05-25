@@ -13,9 +13,10 @@ import {
     followUser,
     unfollowUser,
     showFollowPosts,
-    checkIfIFollowUser
+    checkIfIFollowUser,
+    getUsersBy
 } from "./swagger/userSwagger";
-import {Post, Posts} from "./swagger/objects";
+import {Post, Posts, User, Users} from "./swagger/objects";
 
 export const swaggerDocument = {
     openapi: '3.0.1',
@@ -43,7 +44,9 @@ export const swaggerDocument = {
     components: {
         schemas: {
             Posts,
-            Post
+            Post,
+            User,
+            Users,
         },
         securitySchemes: {
             bearerAuth: {
@@ -72,9 +75,9 @@ export const swaggerDocument = {
         "/follow/posts": {
             get: showFollowPosts
         },
-        // "/follow/{id}": {
-        //     get: checkIfIFollowUser
-        // },
+        "/users": {
+            get: getUsersBy
+        },
         "/login": {
             post: login,
         },
@@ -110,177 +113,4 @@ export const swaggerDocument = {
             delete: unfollowUser
         },
     },
-    // "components": {
-    //     "schemas": {
-    //         "Order": {
-    //             "type": "object",
-    //             "properties": {
-    //                 "id": {
-    //                     "type": "integer",
-    //                     "format": "int64"
-    //                 },
-    //                 "petId": {
-    //                     "type": "integer",
-    //                     "format": "int64"
-    //                 },
-    //                 "quantity": {
-    //                     "type": "integer",
-    //                     "format": "int32"
-    //                 },
-    //                 "shipDate": {
-    //                     "type": "string",
-    //                     "format": "date-time"
-    //                 },
-    //                 "status": {
-    //                     "type": "string",
-    //                     "description": "Order Status",
-    //                     "enum": [
-    //                         "placed",
-    //                         "approved",
-    //                         "delivered"
-    //                     ]
-    //                 },
-    //                 "complete": {
-    //                     "type": "boolean",
-    //                     "default": false
-    //                 }
-    //             },
-    //             "xml": {
-    //                 "name": "Order"
-    //             }
-    //         },
-    //         "Category": {
-    //             "type": "object",
-    //             "properties": {
-    //                 "id": {
-    //                     "type": "integer",
-    //                     "format": "int64"
-    //                 },
-    //                 "name": {
-    //                     "type": "string"
-    //                 }
-    //             },
-    //             "xml": {
-    //                 "name": "Category"
-    //             }
-    //         },
-    //         "User": {
-    //             "type": "object",
-    //             "properties": {
-    //                 "id": {
-    //                     "type": "integer",
-    //                     "format": "int64"
-    //                 },
-    //                 "username": {
-    //                     "type": "string"
-    //                 },
-    //                 "firstName": {
-    //                     "type": "string"
-    //                 },
-    //                 "lastName": {
-    //                     "type": "string"
-    //                 },
-    //                 "email": {
-    //                     "type": "string"
-    //                 },
-    //                 "password": {
-    //                     "type": "string"
-    //                 },
-    //                 "phone": {
-    //                     "type": "string"
-    //                 },
-    //                 "userStatus": {
-    //                     "type": "integer",
-    //                     "description": "User Status",
-    //                     "format": "int32"
-    //                 }
-    //             },
-    //             "xml": {
-    //                 "name": "User"
-    //             }
-    //         },
-    //         "Tag": {
-    //             "type": "object",
-    //             "properties": {
-    //                 "id": {
-    //                     "type": "integer",
-    //                     "format": "int64"
-    //                 },
-    //                 "name": {
-    //                     "type": "string"
-    //                 }
-    //             },
-    //             "xml": {
-    //                 "name": "Tag"
-    //             }
-    //         },
-    //         "Pet": {
-    //             "required": [
-    //                 "name",
-    //                 "photoUrls"
-    //             ],
-    //             "type": "object",
-    //             "properties": {
-    //                 "id": {
-    //                     "type": "integer",
-    //                     "format": "int64"
-    //                 },
-    //                 "category": {
-    //                     "$ref": "#/components/schemas/Category"
-    //                 },
-    //                 "name": {
-    //                     "type": "string",
-    //                     "example": "doggie"
-    //                 },
-    //                 "photoUrls": {
-    //                     "type": "array",
-    //                     "xml": {
-    //                         "name": "photoUrl",
-    //                         "wrapped": true
-    //                     },
-    //                     "items": {
-    //                         "type": "string"
-    //                     }
-    //                 },
-    //                 "tags": {
-    //                     "type": "array",
-    //                     "xml": {
-    //                         "name": "tag",
-    //                         "wrapped": true
-    //                     },
-    //                     "items": {
-    //                         "$ref": "#/components/schemas/Tag"
-    //                     }
-    //                 },
-    //                 "status": {
-    //                     "type": "string",
-    //                     "description": "pet status in the store",
-    //                     "enum": [
-    //                         "available",
-    //                         "pending",
-    //                         "sold"
-    //                     ]
-    //                 }
-    //             },
-    //             "xml": {
-    //                 "name": "Pet"
-    //             }
-    //         },
-    //         "ApiResponse": {
-    //             "type": "object",
-    //             "properties": {
-    //                 "code": {
-    //                     "type": "integer",
-    //                     "format": "int32"
-    //                 },
-    //                 "type": {
-    //                     "type": "string"
-    //                 },
-    //                 "message": {
-    //                     "type": "string"
-    //                 }
-    //             }
-    //         }
-    //     },
-    // }
 }

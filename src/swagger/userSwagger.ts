@@ -1,5 +1,5 @@
 import {activeErrors} from "./commonSwagger";
-import {Posts} from "./objects";
+import {Posts, Users} from "./objects";
 
 export const loginPayload = {
     type: "object",
@@ -265,6 +265,54 @@ export const isAuth = {
                     schema: {
                         type: "boolean",
                     }
+                }
+            }
+        }
+    }
+}
+
+export const getUsersBy = {
+    tags: ['User'],
+    summary: "Returns users",
+    operationId: 'getUsersBy',
+    security,
+    parameters: [
+        headerIdRequired,
+        {
+            "name": "page",
+            "in": "query",
+            "description": "post list page, by default = 1",
+            "required": false,
+            "schema": {
+                "type": "integer"
+            }
+        },
+        {
+            "name": "size",
+            "in": "query",
+            "description": "post list size, by default = 10",
+            "required": false,
+            "schema": {
+                "type": "integer"
+            }
+        },
+        {
+            "name": "searchText",
+            "in": "query",
+            "description": "search text by default \"\"",
+            "required": false,
+            "schema": {
+                "type": "string"
+            }
+        },
+
+    ],
+    responses: {
+        "200": {
+            description: "Users",
+            "content": {
+                "application/json": {
+                    schema: Users
                 }
             }
         }

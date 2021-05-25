@@ -1,3 +1,5 @@
+import {STATE, USER_TYPE} from "../models/User";
+
 export const Post = {
     "type": "object",
     "properties": {
@@ -40,6 +42,39 @@ export const Post = {
     }
 }
 
+export const User = {
+    "type": "object",
+    "properties": {
+        id: {
+            type: "string"
+        },
+        name: {
+            type: "string"
+        },
+        password: {
+            type: "string"
+        },
+        type: {
+            type: "string"
+        },
+        state: {
+            type: "string"
+        },
+        bio: {
+            type: "string"
+        },
+        filename: {
+            type: "string"
+        },
+        lastReviewDate: {
+            type: "integer"
+        },
+    },
+    "xml": {
+        "name": "User"
+    }
+}
+
 export const Posts = {
     "type": "object",
     "properties": {
@@ -64,5 +99,32 @@ export const Posts = {
     },
     "xml": {
         "name": "Posts"
+    }
+}
+
+export const Users = {
+    "type": "object",
+    "properties": {
+        posts: {
+            type: "array",
+            items: {
+                "type": User
+            }
+        },
+        hasNextPage: {
+            type: "boolean",
+        },
+        hasPrevPage: {
+            type: "boolean",
+        },
+        totalDocs: {
+            type: "integer"
+        },
+        totalPages: {
+            type: "integer"
+        },
+    },
+    "xml": {
+        "name": "Users"
     }
 }
