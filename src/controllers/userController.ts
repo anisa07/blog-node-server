@@ -380,7 +380,7 @@ class UserController {
         
         if (!superUser || ((superUser.type !== USER_TYPE.SUPER
         || userToChange.type === USER_TYPE.SUPER) && userIdToChange !== superUserId)) {
-            return res.status(401).send({
+            return res.status(403).send({
                 type: 'ERROR',
                 message: 'Not authorised'
             });

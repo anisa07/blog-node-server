@@ -322,7 +322,7 @@ class PostController {
         for (let follow of followUsers) {
             followPosts = await postService.findPostsBy({
                 query: {
-                    author: new ObjectID("604fe282117c4d20bcc458ba"),
+                    author: new ObjectID(follow.follow),
                     updatedAt: {$gte: new Date(lastReviewDate)}
                 },
                 sort: '-updatedAt',

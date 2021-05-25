@@ -1,4 +1,5 @@
 import {activeErrors} from "./commonSwagger";
+import {Posts} from "./objects";
 
 export const loginPayload = {
     type: "object",
@@ -73,7 +74,10 @@ export const headerIdOptional = {
     in: "header",
     description: "if user is logged in, set user id here",
     required: false,
-    type: "string"
+    type: "string",
+    parameters: [
+        headerIdRequired,
+    ]
 }
 
 export const updateUserInfo = {
@@ -247,7 +251,7 @@ export const changePassword = {
 
 export const isAuth = {
     tags: ['User'],
-    description: "Returns if user logged in or not",
+    summary: "Returns if user logged in or not",
     operationId: 'isAuth',
     security,
     parameters: [
@@ -267,9 +271,41 @@ export const isAuth = {
     }
 }
 
+export const checkIfIFollowUser = {
+    tags: ['User'],
+    summary: "Returns if a user follows another user",
+    operationId: 'checkIfIFollowUser',
+    security,
+    parameters: [
+        headerIdRequired,
+        {
+            "name": "id",
+            "in": "path",
+            "description": "follow user id",
+            "required": true,
+            "schema": {
+                "type": "string",
+            }
+        },
+    ],
+    responses: {
+        "200": {
+            description: "Auth status",
+            "content": {
+                "application/json": {
+                    schema: {
+                        type: "boolean",
+                    }
+                }
+            }
+        }
+    }
+}
+
 export const deleteUserPhoto = {
     tags: ['User'],
     summary: "Delete user photo",
+    operationId: 'deleteUserPhoto',
     security,
     parameters: [
         headerIdRequired,
@@ -290,6 +326,44 @@ export const deleteUserPhoto = {
         "500": {
             description: "Server error"
         },
+    }
+}
+
+export const showFollowPosts = {
+    tags: ['User'],
+    summary: "Get posts from follow users",
+    operationId: 'showFollowPosts',
+    security,
+    parameters: [
+        headerIdRequired,
+        {
+            "name": "page",
+            "in": "query",
+            "description": "post list page, by default = 1",
+            "required": false,
+            "schema": {
+                "type": "number"
+            }
+        },
+        {
+            "name": "size",
+            "in": "query",
+            "description": "post list size, by default = 10",
+            "required": false,
+            "schema": {
+                "type": "number"
+            }
+        }
+    ],
+    responses: {
+        "200": {
+            description: "Follow posts",
+            "content": {
+                "application/json": {
+                    schema: Posts
+                }
+            }
+        }
     }
 }
 
@@ -407,8 +481,9 @@ export const login = {
 
 export const deleteUser = {
     tags: ['User'],
-    summary: "Delete user photo",
+    summary: "Delete user",
     security,
+    operationId: 'deleteUser',
     parameters: [
         headerIdRequired,
         {
@@ -424,6 +499,121 @@ export const deleteUser = {
     responses: {
         "200": {
             description: "User deleted",
+        },
+        "500": {
+            description: "Server error"
+        },
+    }
+}
+
+export const manageUser = {
+    tags: ['User'],
+    summary: "Manage user profile",
+    security,
+    operationId: 'manageUser',
+    parameters: [
+        headerIdRequired,
+    ],
+    requestBody: {
+        content: {
+            "application/json": {
+                schema: {
+                    properties: {
+                        _id: {
+                            type: "string",
+                            description: "User id to update"
+                        },
+                        state: {
+                            type: "string",
+                            description: "User state"
+                        },
+                        type: {
+                            type: "string",
+                            description: "User type"
+                        },
+                        bio: {
+                            type: "string",
+                            description: "Updated user bio"
+                        },
+                        removePhoto: {
+                            type: "boolean",
+                            description: "Delete current user photo"
+                        },
+                        filename: {
+                            type: "string",
+                            description: "User photo to upload",
+                            format: "binary",
+                            paramType : "form",
+                        }
+                    },
+                    required: [
+                        "_id",
+                        "name"
+                    ],
+                }
+            }
+        },
+        required: true
+    },
+    responses: {
+        "200": {
+            description: "user is updated",
+        },
+        "500": {
+            description: "Server error"
+        },
+        ...activeErrors
+    }
+}
+
+export const followUser = {
+    tags: ['User'],
+    summary: "Follow user",
+    security,
+    operationId: 'followUser',
+    parameters: [
+        headerIdRequired,
+    ],
+    requestBody: {
+        content: {
+            "application/json": {
+                schema: {
+                    properties: {
+                        follow: {
+                            type: "string",
+                            description: "User id to start follow "
+                        }
+                    },
+                    required: [
+                        "follow"
+                    ],
+                }
+            }
+        },
+        required: true
+    },
+}
+
+export const unfollowUser = {
+    tags: ['User'],
+    summary: "Stop follow user",
+    operationId: 'unfollowUser',
+    security,
+    parameters: [
+        headerIdRequired,
+        {
+            "name": "id",
+            "in": "path",
+            "description": "user id to stop follow",
+            "required": true,
+            "schema": {
+                "type": "string",
+            }
+        },
+    ],
+    responses: {
+        "200": {
+            description: "Stop follow user",
         },
         "500": {
             description: "Server error"
