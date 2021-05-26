@@ -1,4 +1,4 @@
-import {activeErrors} from "./commonSwagger";
+import {activeErrors, headerIdOptional, headerIdRequired, security} from "./commonSwagger";
 import {Posts, Users} from "./objects";
 
 export const loginPayload = {
@@ -53,31 +53,6 @@ export const loginResponse = {
             type: 'string'
         }
     }
-}
-
-export const security = [
-    {
-        bearerAuth: []
-    }
-]
-
-export const headerIdRequired = {
-    name: "id",
-    in: "header",
-    description: "set logged in user id here",
-    required: true,
-    type: "string"
-}
-
-export const headerIdOptional = {
-    name: "id",
-    in: "header",
-    description: "if user is logged in, set user id here",
-    required: false,
-    type: "string",
-    parameters: [
-        headerIdRequired,
-    ]
 }
 
 export const updateUserInfo = {

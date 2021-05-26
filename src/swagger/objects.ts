@@ -1,5 +1,3 @@
-import {STATE, USER_TYPE} from "../models/User";
-
 export const Post = {
     "type": "object",
     "properties": {

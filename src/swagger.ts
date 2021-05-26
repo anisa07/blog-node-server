@@ -16,7 +16,18 @@ import {
     checkIfIFollowUser,
     getUsersBy
 } from "./swagger/userSwagger";
-import {Post, Posts, User, Users} from "./swagger/objects";
+import {
+    Post,
+    Posts,
+    User,
+    Users
+} from "./swagger/objects";
+import {
+    createLabel,
+    getLabels,
+    deleteLabel,
+    updateLabel
+} from "./swagger/labelSwagger";
 
 export const swaggerDocument = {
     openapi: '3.0.1',
@@ -78,6 +89,13 @@ export const swaggerDocument = {
         "/users": {
             get: getUsersBy
         },
+        "/label": {
+            post: createLabel,
+            get: getLabels
+        },
+        "/label/{id}": {
+            delete: deleteLabel
+        },
         "/login": {
             post: login,
         },
@@ -106,7 +124,8 @@ export const swaggerDocument = {
             delete: deleteUserPhoto,
         },
         "/user/{id}": {
-            delete: deleteUser
+            delete: deleteUser,
+            put: updateLabel
         },
         "/follow/{id}": {
             get: checkIfIFollowUser,

@@ -1,7 +1,6 @@
 export const activeErrors = {
     "400": {
         description: "Payload is incorrect",
-        content: {}
     },
     "404": {
         description: "User not found"
@@ -9,4 +8,29 @@ export const activeErrors = {
     "403": {
         description: "User is not active or blocked"
     }
+}
+
+export const security = [
+    {
+        bearerAuth: []
+    }
+]
+
+export const headerIdRequired = {
+    name: "id",
+    in: "header",
+    description: "set logged in user id here",
+    required: true,
+    type: "string"
+}
+
+export const headerIdOptional = {
+    name: "id",
+    in: "header",
+    description: "if user is logged in, set user id here",
+    required: false,
+    type: "string",
+    parameters: [
+        headerIdRequired,
+    ]
 }

@@ -60,12 +60,14 @@ class LabelController {
     }
 
     async readLabels(req: express.Request, res: express.Response) {
-        return labelService.getAllLabels();
+        const labels = await labelService.getAllLabels();
+        return res.status(200).send(labels || []);
     }
 
     async deleteLabel(req: express.Request, res: express.Response) {
         const labelId = req.params.id as string;
-        return labelService.deleteLabel({_id: labelId});
+        await labelService.deleteLabel({_id: labelId});
+        return res.status(200).send({});
     }
 
     // get label for post
