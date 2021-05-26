@@ -28,6 +28,13 @@ import {
     deleteLabel,
     updateLabel
 } from "./swagger/labelSwagger";
+import {
+    createComment,
+    getComment,
+    getComments,
+    deleteComment,
+    updateComment
+} from "./swagger/commentSwagger";
 
 export const swaggerDocument = {
     openapi: '3.0.1',
@@ -95,6 +102,17 @@ export const swaggerDocument = {
         },
         "/label/{id}": {
             delete: deleteLabel
+        },
+        "/comment": {
+            post: createComment
+        },
+        "/comment/{id}": {
+            get: getComment,
+            put: updateComment,
+            delete: deleteComment
+        },
+        "/comment/post/{postId}": {
+            get: getComments
         },
         "/login": {
             post: login,

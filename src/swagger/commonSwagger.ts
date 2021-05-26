@@ -30,7 +30,4 @@ export const headerIdOptional = {
     description: "if user is logged in, set user id here",
     required: false,
     type: "string",
-    parameters: [
-        headerIdRequired,
-    ]
 }
