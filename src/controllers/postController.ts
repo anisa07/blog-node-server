@@ -1,4 +1,5 @@
 import express from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import {userService} from '../services/userService';
 import {PostModel} from '../models/Post';
 import {postService} from '../services/postService';
@@ -15,15 +16,14 @@ import {LabelModel} from '../models/Label';
 import {POSTS_LIST_SIZE} from '../utils/constants';
 import {getCommentsData} from "./commentController";
 import {PaginateResult} from 'mongoose';
-const ObjectID = require('mongodb').ObjectID;
 
 const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
     if (post) {
-        const user = await userService.findUserByQuery({_id: post.author}) as UserModel;
-        const labelsToPost = await labelToPostService.findPostLabels(post._id) as LabelToPostModel[];
+        const user = await userService.findUserByQuery({id: post.authorId}) as UserModel;
+        const labelsToPost = await labelToPostService.findPostLabels(post.id) as LabelToPostModel[];
         const labels = [] as LabelModel[];
         for (let l of labelsToPost) {
-            const label = await labelService.findLabelBy({_id: l.label}) as LabelModel;
+            const label = await labelService.findLabelBy({id: l.labelId}) as LabelModel;
             if (label) {
                 labels.push(label);
             }
@@ -33,7 +33,7 @@ const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
             return null;
         }
 
-        const likes = await likeService.findPostLikes({post: post._id}) as LikeModel[];
+        const likes = await likeService.findPostLikes({postId: post.id}) as LikeModel[];
         let likesValue = 0;
         if (likes) {
             for (let like of likes) {
@@ -42,10 +42,10 @@ const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
         }
 
         if (allPostsData) {
-            const commentsCount = await commentService.countComments({post: post._id});
+            const commentsCount = await commentService.countComments({post: post.id});
             return {
-                id: post._id,
-                authorId: post.author,
+                id: post.id,
+                authorId: post.authorId,
                 author: user.name,
                 labels,
                 commentsCount,
@@ -57,11 +57,11 @@ const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
             }
         }
 
-        const commentsData = await getCommentsData({postId: post._id});
+        const commentsData = await getCommentsData({postId: post.id});
 
         return {
-            id: post._id,
-            authorId: post.author,
+            id: post.id,
+            authorId: post.authorId,
             author: user.name,
             labels,
             comments: commentsData.comments,
@@ -78,11 +78,11 @@ const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
 class PostController {
     async deletePostImage(req: express.Request, res: express.Response) {
         const postId = req.params.id;
-        const post = await postService.findPostBy({_id: postId}) as PostModel;
+        const post = await postService.findPostBy({id: postId}) as PostModel;
         if (post && post.filename) {
             await gfsService.deleteItem(post.filename, res);
             post.filename = "";
-            post.save();
+            await post.save();
             return res.status(200).send();
         } else {
             return res.status(404).send({
@@ -97,8 +97,8 @@ class PostController {
         const userId = req.headers.id as string;
         const filename = req.file?.filename || req.body.filename || '';
         const {title, text, labels} = req.body;
-        const user = await userService.findUserByQuery({_id: userId as string});
-        const post = await postService.findPostBy({_id: postId}) as PostModel;
+        const user = await userService.findUserByQuery({id: userId as string});
+        const post = await postService.findPostBy({id: postId}) as PostModel;
 
         if (!post) {
             return res.status(404).send({
@@ -114,7 +114,7 @@ class PostController {
             });
         }
 
-        if (post.author.toString() !== userId && user.type !== USER_TYPE.SUPER) {
+        if (post.authorId !== userId && user.type !== USER_TYPE.SUPER) {
             return res.status(401).send({
                 type: 'ERROR',
                 message: 'This user is not authorised to change this post'
@@ -131,7 +131,7 @@ class PostController {
         }
 
         const updatePost = {
-            author: post.author,
+            authorId: post.authorId,
             filename: filename,
             title: title || post.title,
             text: text || post.text
@@ -140,7 +140,7 @@ class PostController {
         try {
             await postService.updatePost(postId, updatePost);
             for (let l of (JSON.parse(labels) || [])) {
-                await labelToPostService.addLabelToPost({label: l.id, post: postId} as LabelToPostModel)
+                await labelToPostService.addLabelToPost({labelId: l.id, postId} as LabelToPostModel)
             }
             return res.status(200).send({
                 id: postId
@@ -157,7 +157,7 @@ class PostController {
     async deletePost(req: express.Request, res: express.Response) {
         const postId: string = req.params.id as string;
         if (postId) {
-            const post = await postService.findPostBy({_id: postId}) as PostModel;
+            const post = await postService.findPostBy({id: postId}) as PostModel;
             if (post && post.filename) {
                 await gfsService.deleteItem(post.filename, res);
             }
@@ -175,7 +175,7 @@ class PostController {
         const userId = req.headers.id as string;
         const filename = req.file?.filename || '';
         const {title, text, labels} = req.body;
-        const user = await userService.findUserByQuery({_id: userId as string});
+        const user = await userService.findUserByQuery({id: userId as string});
         if (!user) {
             return res.status(404).send({
                 type: 'ERROR',
@@ -183,7 +183,9 @@ class PostController {
             });
         }
 
+        const postId = uuidv4();
         const newPost = {
+            id: postId,
             filename,
             author: userId,
             title,
@@ -191,13 +193,13 @@ class PostController {
         } as unknown as PostModel;
 
         try {
-            const createdPost = await postService.createPost(newPost) as PostModel;
+            await postService.createPost(newPost);
             for (let l of (JSON.parse(labels) || [])) {
-                await labelToPostService.addLabelToPost({label: l.id, post: createdPost._id} as LabelToPostModel)
+                await labelToPostService.addLabelToPost({labelId: l.id, postId} as LabelToPostModel)
             }
 
             return res.status(200).send({
-                id: createdPost._id
+                id: postId
             })
         } catch (e) {
             return res.status(500).send({
@@ -216,7 +218,7 @@ class PostController {
             });
         }
 
-        const post = await postService.findPostBy({_id: postId}) as PostModel;
+        const post = await postService.findPostBy({id: postId}) as PostModel;
         const postData = await gatherPostData(post);
         if (!post) {
             return res.status(404).send({
@@ -228,6 +230,7 @@ class PostController {
         }
     }
 
+    // TODO refactor
     async getPostImage(req: express.Request, res: express.Response) {
         const filename = req.params.filename;
         return gfsService.getItem(filename, res);
@@ -254,9 +257,9 @@ class PostController {
                     totalPages: 0
                 })
             }
-            searchQuery.author = user._id;
+            searchQuery.author = user.id;
         } else if (authorId) {
-            const user = await userService.findUserByQuery({_id: authorId as string});
+            const user = await userService.findUserByQuery({id: authorId as string});
             if (!user) {
                 res.status(200).send({
                     posts: []
@@ -312,7 +315,7 @@ class PostController {
     async showFollowPosts(req: express.Request, res: express.Response) {
         const {size, page} = req.query;
         const userId = req.headers.id as string;
-        const user = await userService.findUserByQuery({_id: userId as string}) as UserModel;
+        const user = await userService.findUserByQuery({id: userId as string}) as UserModel;
         const postsData: any[] = [];
         const lastReviewDate = user.lastReviewDate || 0;
         user.lastReviewDate = new Date();
@@ -322,7 +325,7 @@ class PostController {
         for (let follow of followUsers) {
             followPosts = await postService.findPostsBy({
                 query: {
-                    author: new ObjectID(follow.follow),
+                    authorId: follow.followId,
                     updatedAt: {$gte: new Date(lastReviewDate)}
                 },
                 sort: '-updatedAt',

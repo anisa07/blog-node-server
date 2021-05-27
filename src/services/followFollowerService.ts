@@ -3,12 +3,12 @@ import {FollowerFollow, FollowerFollowModel} from '../models/FollowerFollow';
 class FollowerFollowService {
     findFollow(id: string){
         return FollowerFollow.find({
-            follower: id
+            followerId: id
         })
     }
 
     findFollower(id: string, followerId: string){
-        return FollowerFollow.findOne({$and: [{follow: id}, {follower: followerId}]})
+        return FollowerFollow.findOne({$and: [{followId: id}, {followerId}]})
     }
 
     follow(followFollower: FollowerFollowModel){
@@ -16,11 +16,12 @@ class FollowerFollowService {
     }
     
     unfollow(followerId: string, followId: string) {
-        return FollowerFollow.deleteOne({$and: [{follow: followId}, {follower: followerId}]})
+        return FollowerFollow.deleteOne({$and: [{followId}, {followerId}]})
     }
 }
 
 const followerFollowService = new FollowerFollowService();
+
 export {
     followerFollowService
 }

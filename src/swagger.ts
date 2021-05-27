@@ -1,10 +1,4 @@
 import {
-    isAuth,
-    login,
-    signup,
-    logout,
-    forgotPassword,
-    changePassword,
     updateUserInfo,
     getUserInfo,
     deleteUserPhoto,
@@ -35,6 +29,8 @@ import {
     deleteComment,
     updateComment
 } from "./swagger/commentSwagger";
+import {getAllLikesForPost, getUserLikeByPostId, sendLike, updateLike} from "./swagger/likeSwagger";
+import {changePassword, forgotPassword, isAuth, login, logout, signup} from "./swagger/authSwagger";
 
 export const swaggerDocument = {
     openapi: '3.0.1',
@@ -87,13 +83,13 @@ export const swaggerDocument = {
         "/auth": {
             get: isAuth,
         },
-        "/user-info/{id}": {
+        "/user/info/{id}": {
             get: getUserInfo,
         },
-        "/follow/posts": {
+        "/user/follow/posts": {
             get: showFollowPosts
         },
-        "/users": {
+        "/user": {
             get: getUsersBy
         },
         "/label": {
@@ -102,6 +98,16 @@ export const swaggerDocument = {
         },
         "/label/{id}": {
             delete: deleteLabel
+        },
+        "/like": {
+            post: sendLike,
+            put: updateLike
+        },
+        "/like/user/post/{postId}": {
+            get: getUserLikeByPostId,
+        },
+        "/like/post/{postId}": {
+            get: getAllLikesForPost,
         },
         "/comment": {
             post: createComment
@@ -129,23 +135,23 @@ export const swaggerDocument = {
         "/change-password": {
             post: changePassword,
         },
-        "/user-info": {
+        "/user/info": {
             post: updateUserInfo,
         },
-        "/manage-user": {
+        "/user/manage": {
             post: manageUser
         },
-        "/follow": {
+        "/user/follow": {
             post: followUser
         },
-        "/user-photo/{filename}": {
+        "/user/photo/{filename}": {
             delete: deleteUserPhoto,
         },
         "/user/{id}": {
             delete: deleteUser,
             put: updateLabel
         },
-        "/follow/{id}": {
+        "/user/follow/{id}": {
             get: checkIfIFollowUser,
             delete: unfollowUser
         },

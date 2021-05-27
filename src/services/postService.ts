@@ -46,15 +46,17 @@ class PostService {
     }
 
     deletePost(id: string) {
-        return Post.findOneAndDelete({_id: id});
+        return Post.findOneAndDelete({id});
     }
 
+    // TODO check
     updatePost(id: string, post: PostModel) {
-        return Post.updateOne({_id: id}, post)
+        return Post.updateOne({id}, post)
     }
 }
 
 const postService = new PostService();
+
 export {
     postService
 }
