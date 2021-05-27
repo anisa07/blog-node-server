@@ -1,6 +1,6 @@
 import {activeErrors, headerIdRequired, security} from "./commonSwagger";
 
-const labelResponse = {
+export const labelResponse = {
     type: "object",
     properties: {
         id: {

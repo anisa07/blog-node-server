@@ -77,7 +77,7 @@ const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
 
 class PostController {
     async deletePostImage(req: express.Request, res: express.Response) {
-        const postId = req.params.id;
+        const postId = req.params.postId;
         const post = await postService.findPostBy({id: postId}) as PostModel;
         if (post && post.filename) {
             await gfsService.deleteItem(post.filename, res);
@@ -93,7 +93,7 @@ class PostController {
     }
 
     async updatePost(req: express.Request, res: express.Response) {
-        const postId: string = req.params.id as string;
+        const postId: string = req.params.postId as string;
         const userId = req.headers.id as string;
         const filename = req.file?.filename || req.body.filename || '';
         const {title, text, labels} = req.body;
@@ -115,7 +115,7 @@ class PostController {
         }
 
         if (post.authorId !== userId && user.type !== USER_TYPE.SUPER) {
-            return res.status(401).send({
+            return res.status(403).send({
                 type: 'ERROR',
                 message: 'This user is not authorised to change this post'
             });
@@ -148,14 +148,14 @@ class PostController {
         } catch (e) {
             return res.status(500).send({
                 type: 'ERROR',
-                message: 'Error occurs during post creation'
+                message: 'Error occurs during post update'
             });
         }
 
     }
 
     async deletePost(req: express.Request, res: express.Response) {
-        const postId: string = req.params.id as string;
+        const postId: string = req.params.postId as string;
         if (postId) {
             const post = await postService.findPostBy({id: postId}) as PostModel;
             if (post && post.filename) {
@@ -210,7 +210,7 @@ class PostController {
     }
 
     async readPost(req: express.Request, res: express.Response) {
-        const postId: string = req.params.id as string;
+        const postId: string = req.params.postId as string;
         if (!postId) {
             return res.status(400).send({
                 type: 'ERROR',

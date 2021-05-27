@@ -78,9 +78,7 @@ export const Posts = {
     "properties": {
         posts: {
             type: "array",
-            items: {
-                "type": Post
-            }
+            items: Post
         },
         hasNextPage: {
             type: "boolean",
@@ -103,11 +101,9 @@ export const Posts = {
 export const Users = {
     "type": "object",
     "properties": {
-        posts: {
+        users: {
             type: "array",
-            items: {
-                "type": User
-            }
+            items: User
         },
         hasNextPage: {
             type: "boolean",

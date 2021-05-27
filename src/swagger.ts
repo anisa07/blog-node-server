@@ -29,8 +29,28 @@ import {
     deleteComment,
     updateComment
 } from "./swagger/commentSwagger";
-import {getAllLikesForPost, getUserLikeByPostId, sendLike, updateLike} from "./swagger/likeSwagger";
-import {changePassword, forgotPassword, isAuth, login, logout, signup} from "./swagger/authSwagger";
+import {
+    getAllLikesForPost,
+    getUserLikeByPostId,
+    sendLike,
+    updateLike
+} from "./swagger/likeSwagger";
+import {
+    changePassword,
+    forgotPassword,
+    isAuth,
+    login,
+    logout,
+    signup
+} from "./swagger/authSwagger";
+import {
+    createPost,
+    deletePost,
+    deletePostImage,
+    getPost,
+    getPosts,
+    updatePost
+} from "./swagger/postSwagger";
 
 export const swaggerDocument = {
     openapi: '3.0.1',
@@ -80,6 +100,18 @@ export const swaggerDocument = {
         "http"
     ],
     paths: {
+        "/post": {
+            post: createPost,
+            get: getPosts
+        },
+        "/post/{postId}": {
+            get: getPost,
+            delete: deletePost,
+            put: updatePost
+        },
+        "/post/image/{postId}": {
+            delete: deletePostImage
+        },
         "/auth": {
             get: isAuth,
         },
