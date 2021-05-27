@@ -108,7 +108,7 @@ export const checkIfIFollowUser = {
     parameters: [
         headerIdRequired,
         {
-            "name": "id",
+            "name": "followId",
             "in": "path",
             "description": "follow user id",
             "required": true,
@@ -204,7 +204,7 @@ export const getUserInfo = {
     parameters: [
         headerIdOptional,
         {
-            "name": "id",
+            "name": "userId",
             "in": "path",
             "description": "user id to get info",
             "required": true,
@@ -258,7 +258,7 @@ export const deleteUser = {
     parameters: [
         headerIdRequired,
         {
-            "name": "id",
+            "name": "userId",
             "in": "path",
             "description": "user id to delete",
             "required": true,
@@ -373,7 +373,7 @@ export const unfollowUser = {
     parameters: [
         headerIdRequired,
         {
-            "name": "id",
+            "name": "followId",
             "in": "path",
             "description": "user id to stop follow",
             "required": true,

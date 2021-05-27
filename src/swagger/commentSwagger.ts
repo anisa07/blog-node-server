@@ -32,7 +32,7 @@ export const deleteComment = {
     parameters: [
         headerIdRequired,
         {
-            "name": "id",
+            "name": "commentId",
             "in": "path",
             "description": "comment id to delete",
             "required": true,
@@ -56,7 +56,7 @@ export const updateComment = {
     parameters: [
         headerIdRequired,
         {
-            "name": "id",
+            "name": "commentId",
             "in": "path",
             "description": "comment id to update",
             "required": true,
@@ -163,7 +163,7 @@ export const getComment = {
     operationId: "getComment",
     parameters: [
         {
-            "name": "id",
+            "name": "commentId",
             "in": "path",
             "description": "comment id to update",
             "required": true,

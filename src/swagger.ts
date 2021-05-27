@@ -83,7 +83,7 @@ export const swaggerDocument = {
         "/auth": {
             get: isAuth,
         },
-        "/user/info/{id}": {
+        "/user/info/{userId}": {
             get: getUserInfo,
         },
         "/user/follow/posts": {
@@ -96,8 +96,9 @@ export const swaggerDocument = {
             post: createLabel,
             get: getLabels
         },
-        "/label/{id}": {
-            delete: deleteLabel
+        "/label/{labelId}": {
+            delete: deleteLabel,
+            put: updateLabel
         },
         "/like": {
             post: sendLike,
@@ -112,7 +113,7 @@ export const swaggerDocument = {
         "/comment": {
             post: createComment
         },
-        "/comment/{id}": {
+        "/comment/{commentId}": {
             get: getComment,
             put: updateComment,
             delete: deleteComment
@@ -147,11 +148,11 @@ export const swaggerDocument = {
         "/user/photo/{filename}": {
             delete: deleteUserPhoto,
         },
-        "/user/{id}": {
+        "/user/{userId}": {
             delete: deleteUser,
-            put: updateLabel
+            // put: updateLabel
         },
-        "/user/follow/{id}": {
+        "/user/follow/{followId}": {
             get: checkIfIFollowUser,
             delete: unfollowUser
         },

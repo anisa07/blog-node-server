@@ -9,19 +9,19 @@ const router = Router();
 
 // user-info (read, edit)
 router.post('/info', auth, active, upload.single('photo'), userController.updateUserInfo);
-router.get('/info/:id', userController.getUserInfo);
+router.get('/info/:userId', userController.getUserInfo);
 router.get('/photo/:filename', userController.getUserPhoto);
 router.delete('/photo/:filename', auth, active, userController.deletePhoto);
-router.delete('/:id', auth, active, userController.deleteUser);
+router.delete('/:userId', auth, active, userController.deleteUser);
 
 // manage-user
 router.post('/manage', auth, active, userController.manageUserData);
 
 // follow
 router.post('/follow', auth, active, userController.followUser);
-router.delete('/follow/:id', auth, active, userController.unFollowUser);
+router.delete('/follow/:followId', auth, active, userController.unFollowUser);
 router.get('/follow/posts', auth, active, postController.showFollowPosts);
-router.get('/follow/:id', userController.doIFollowUser);
+router.get('/follow/:followId', userController.doIFollowUser);
 
 // user
 router.get('/', auth, active, userController.getUsersBy);

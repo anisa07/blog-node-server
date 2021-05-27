@@ -72,7 +72,7 @@ class CommentController {
         const text = req.body.text as string;
         const postId = req.body.postId as string;
         const userId = req.headers.id as string;
-        const commentId = req.params.id as string;
+        const commentId = req.params.commentId as string;
 
         if (!text || !text.trim()) {
             return res.status(400).send({
@@ -111,7 +111,7 @@ class CommentController {
 
     async readComment(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
-        const commentId = req.params.id as string;
+        const commentId = req.params.commentId as string;
         const comment = await commentService.findCommentBy({id: commentId, userId: userId});
 
         if (!comment) {
@@ -127,7 +127,7 @@ class CommentController {
     }
 
     async deleteComment(req: express.Request, res: express.Response) {
-        const commentId = req.params.id as string;
+        const commentId = req.params.commentId as string;
         const userId = req.headers.id as string;
 
         await commentService.deleteComment({id: commentId, userId: userId});

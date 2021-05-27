@@ -36,7 +36,7 @@ class LabelController {
 
     async updateLabel(req: express.Request, res: express.Response) {
         const name = req.body.name as string;
-        const labelId = req.params.id as string;
+        const labelId = req.params.labelId as string;
 
         if (!name || !name.trim()) {
             return res.status(400).send({
@@ -66,7 +66,7 @@ class LabelController {
     }
 
     async deleteLabel(req: express.Request, res: express.Response) {
-        const labelId = req.params.id as string;
+        const labelId = req.params.labelId as string;
         await labelService.deleteLabel({id: labelId});
         return res.status(200).send({});
     }

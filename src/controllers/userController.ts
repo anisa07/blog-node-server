@@ -298,7 +298,7 @@ class UserController {
     }
 
     async getUserInfo(req: express.Request, res: express.Response) {
-        const id: string = req.params.id as string;
+        const id: string = req.params.userId as string;
         const currentUserId = req.headers.id;
         const currentUser = currentUserId ? await userService.findUserByQuery({ id: currentUserId as string }) : null;
         const userInfo = await userService.findUserByQuery({ id: id });
@@ -347,7 +347,7 @@ class UserController {
     }
 
     async deleteUser(req: express.Request, res: express.Response) {
-        const currentUserId = req.headers.id;
+        const currentUserId = req.headers.userId;
         const userId = req.params.id;
         const user = await userService.findUserByQuery({ id: userId as string });
         const currentUser = await userService.findUserByQuery({ id: currentUserId as string });
@@ -453,7 +453,7 @@ class UserController {
 
     async unFollowUser(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
-        const follow = req.params.id;
+        const follow = req.params.followId;
         await followerFollowService.unfollow(userId, follow);
         return res.status(200).send({});
     }
