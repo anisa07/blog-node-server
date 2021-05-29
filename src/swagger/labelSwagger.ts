@@ -1,6 +1,6 @@
 import {activeErrors, headerIdRequired, security} from "./commonSwagger";
 
-const labelResponse = {
+export const labelResponse = {
     type: "object",
     properties: {
         id: {
@@ -90,7 +90,7 @@ export const updateLabel = {
     parameters: [
         headerIdRequired,
         {
-            "name": "id",
+            "name": "labelId",
             "in": "path",
             "description": "label id to update",
             "required": true,
@@ -121,7 +121,7 @@ export const deleteLabel = {
     parameters: [
         headerIdRequired,
         {
-            "name": "id",
+            "name": "labelId",
             "in": "path",
             "description": "label id to delete",
             "required": true,

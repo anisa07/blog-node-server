@@ -21,8 +21,9 @@ class CommentService {
         return Comment.findOneAndDelete(query);
     }
 
+    // TODO check
     updateComment(id: string, userId: string, postId: string, c: CommentModel) {
-        return Comment.updateOne({_id: id, user: userId, post: postId}, c)
+        return Comment.updateOne({id, userId, postId}, c)
     }
 
     countComments(query: {[key:string]: string}) {

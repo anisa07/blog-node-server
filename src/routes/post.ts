@@ -6,17 +6,17 @@ import { auth } from '../utils/authMiddleware';
 
 const router = Router(); 
 
-router.put('/:id', auth, active, upload.single('image'), postController.updatePost);
+router.put('/:postId', auth, active, upload.single('image'), postController.updatePost);
 
-router.delete('/:id', auth, active, postController.deletePost);
+router.delete('/:postId', auth, active, postController.deletePost);
 
 router.post('/', auth, active, upload.single('image'), postController.createPost);
 
 router.get('/', postController.readPosts);
 
-router.get('/:id', postController.readPost);
+router.get('/:postId', postController.readPost);
 
-router.delete('/image/:id', auth, active, postController.deletePostImage);
+router.delete('/image/:postId', auth, active, postController.deletePostImage);
 
 router.get('/image/:filename', postController.getPostImage);
 

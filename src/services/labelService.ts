@@ -17,8 +17,9 @@ class LabelService {
         return Label.findOneAndDelete(query);
     }
 
+    // TODO check
     updateLabel(id: string, label: LabelModel) {
-        return Label.updateOne({_id: id}, label)
+        return Label.updateOne({id}, label)
     }
 }
 

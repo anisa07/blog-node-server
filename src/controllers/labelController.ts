@@ -1,4 +1,5 @@
 import express from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import { labelService } from '../services/labelService';
 import { LabelModel } from '../models/Label';
 
@@ -16,13 +17,13 @@ class LabelController {
             const oldLabel = await labelService.findLabelBy({name});
             let id;
             if (oldLabel) {
-                id = oldLabel._id;
+                id = oldLabel.id;
             } else {
-                const label = await labelService.createLabel({name} as LabelModel);
-                id = label._id;
+                id = uuidv4();
+                await labelService.createLabel({name, id} as LabelModel);
             }
             return res.status(200).send({
-                id: id,
+                id,
                 name
             })
         } catch (e) {
@@ -35,7 +36,7 @@ class LabelController {
 
     async updateLabel(req: express.Request, res: express.Response) {
         const name = req.body.name as string;
-        const labelId = req.params.id as string;
+        const labelId = req.params.labelId as string;
 
         if (!name || !name.trim()) {
             return res.status(400).send({
@@ -65,11 +66,12 @@ class LabelController {
     }
 
     async deleteLabel(req: express.Request, res: express.Response) {
-        const labelId = req.params.id as string;
-        await labelService.deleteLabel({_id: labelId});
+        const labelId = req.params.labelId as string;
+        await labelService.deleteLabel({id: labelId});
         return res.status(200).send({});
     }
 
+    // TODO
     // get label for post
     // get label for user
 }

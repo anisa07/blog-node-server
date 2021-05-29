@@ -1,15 +1,26 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, {Schema} from 'mongoose';
 
 export type LabelToPostModel = mongoose.Document & {
-    post: string;
-    label: string;
+    postId: string,
+    labelId: string,
+    id: string
 }
 
 const labelToPostSchema = new Schema({
-    post: { type: Schema.Types.ObjectId, ref: 'Post' },
-    label: { type: Schema.Types.ObjectId, ref: 'Label' },
-},
-    { timestamps: true }
+        postId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Post'
+        },
+        labelId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Label'
+        },
+        id: {
+            type: String,
+            required: true,
+        },
+    },
+    {timestamps: true}
 );
 
 const LabelToPost = mongoose.model('LabelToPost', labelToPostSchema);

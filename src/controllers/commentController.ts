@@ -1,4 +1,5 @@
 import express from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import {commentService} from '../services/commentService';
 import {CommentModel} from '../models/Comment';
 import {COMMENTS_LIST_SIZE} from "../utils/constants";
@@ -19,14 +20,14 @@ export const getCommentsData = async (query: { updatedAt?: any, size?: any, post
     let commentsWithUsername = [] as { [key: string]: any }[];
 
     for (let comment of data.docs) {
-        const user = await userService.findUserByQuery({_id: comment.user}) as UserModel;
+        const user = await userService.findUserByQuery({id: comment.userId}) as UserModel;
         commentsWithUsername.push({
             username: user.name,
             updatedAt: comment.updatedAt,
             text: comment.text,
-            id: comment._id,
-            userId: comment.user,
-            postId: comment.post,
+            id: comment.id,
+            userId: comment.userId,
+            postId: comment.postId,
         });
     }
 
@@ -51,9 +52,10 @@ class CommentController {
         }
 
         try {
-            const comment = await commentService.createComment({text, user: userId, post: postId} as CommentModel);
+            const commentId = uuidv4();
+            await commentService.createComment({text, userId, postId, id: commentId} as CommentModel);
             return res.status(200).send({
-                id: comment._id,
+                id: commentId,
                 text,
                 userId,
                 postId
@@ -70,7 +72,7 @@ class CommentController {
         const text = req.body.text as string;
         const postId = req.body.postId as string;
         const userId = req.headers.id as string;
-        const commentId = req.params.id as string;
+        const commentId = req.params.commentId as string;
 
         if (!text || !text.trim()) {
             return res.status(400).send({
@@ -109,8 +111,8 @@ class CommentController {
 
     async readComment(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
-        const commentId = req.params.id as string;
-        const comment = await commentService.findCommentBy({_id: commentId, user: userId});
+        const commentId = req.params.commentId as string;
+        const comment = await commentService.findCommentBy({id: commentId, userId: userId});
 
         if (!comment) {
             return res.status(404).send({
@@ -125,10 +127,10 @@ class CommentController {
     }
 
     async deleteComment(req: express.Request, res: express.Response) {
-        const commentId = req.params.id as string;
+        const commentId = req.params.commentId as string;
         const userId = req.headers.id as string;
 
-        await commentService.deleteComment({_id: commentId, user: userId});
+        await commentService.deleteComment({id: commentId, userId: userId});
         return res.status(200).send({
             commentId
         })

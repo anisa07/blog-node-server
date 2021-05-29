@@ -13,12 +13,14 @@ class LikeService {
         return Like.create(like)
     }
 
+    // TODO check
     changeLike(id: string, like: LikeModel) {
-        return Like.updateOne({_id: id}, like)
+        return Like.updateOne({id}, like)
     }
 }
 
 const likeService = new LikeService();
+
 export {
     likeService
 }

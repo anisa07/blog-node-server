@@ -3,10 +3,11 @@ import mongoosePaginate from 'mongoose-paginate-v2';
 
 export type CommentModel = mongoose.Document & {
     text: string,
-    user: string,
-    post: string,
-    createdAt?: any;
-    updatedAt?: any;
+    userId: string,
+    postId: string,
+    createdAt?: any,
+    updatedAt?: any,
+    id: string,
 }
 
 const commentSchema = new Schema({
@@ -14,8 +15,18 @@ const commentSchema = new Schema({
             type: String,
             required: true,
         },
-        user: {type: Schema.Types.ObjectId, ref: 'User'},
-        post: {type: Schema.Types.ObjectId, ref: 'Post'},
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        postId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Post'
+        },
+        id: {
+            type: String,
+            required: true,
+        },
     },
     {timestamps: true});
 

@@ -5,13 +5,13 @@ import { auth } from '../utils/authMiddleware';
 
 const router = Router(); 
 
-router.put('/:id', auth, active, commentController.updateComment);
+router.put('/:commentId', auth, active, commentController.updateComment);
 
-router.delete('/:id', auth, active, commentController.deleteComment);
+router.delete('/:commentId', auth, active, commentController.deleteComment);
 
 router.post('/', auth, active, commentController.createComment);
 
-router.get('/:id', commentController.readComment);
+router.get('/:commentId', commentController.readComment);
 
 router.get('/post/:postId', commentController.readAllPostComments);
 

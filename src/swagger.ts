@@ -1,10 +1,4 @@
 import {
-    isAuth,
-    login,
-    signup,
-    logout,
-    forgotPassword,
-    changePassword,
     updateUserInfo,
     getUserInfo,
     deleteUserPhoto,
@@ -35,6 +29,28 @@ import {
     deleteComment,
     updateComment
 } from "./swagger/commentSwagger";
+import {
+    getAllLikesForPost,
+    getUserLikeByPostId,
+    sendLike,
+    updateLike
+} from "./swagger/likeSwagger";
+import {
+    changePassword,
+    forgotPassword,
+    isAuth,
+    login,
+    logout,
+    signup
+} from "./swagger/authSwagger";
+import {
+    createPost,
+    deletePost,
+    deletePostImage,
+    getPost,
+    getPosts,
+    updatePost
+} from "./swagger/postSwagger";
 
 export const swaggerDocument = {
     openapi: '3.0.1',
@@ -84,29 +100,52 @@ export const swaggerDocument = {
         "http"
     ],
     paths: {
+        "/post": {
+            post: createPost,
+            get: getPosts
+        },
+        "/post/{postId}": {
+            get: getPost,
+            delete: deletePost,
+            put: updatePost
+        },
+        "/post/image/{postId}": {
+            delete: deletePostImage
+        },
         "/auth": {
             get: isAuth,
         },
-        "/user-info/{id}": {
+        "/user/info/{userId}": {
             get: getUserInfo,
         },
-        "/follow/posts": {
+        "/user/follow/posts": {
             get: showFollowPosts
         },
-        "/users": {
+        "/user": {
             get: getUsersBy
         },
         "/label": {
             post: createLabel,
             get: getLabels
         },
-        "/label/{id}": {
-            delete: deleteLabel
+        "/label/{labelId}": {
+            delete: deleteLabel,
+            put: updateLabel
+        },
+        "/like": {
+            post: sendLike,
+            put: updateLike
+        },
+        "/like/user/post/{postId}": {
+            get: getUserLikeByPostId,
+        },
+        "/like/post/{postId}": {
+            get: getAllLikesForPost,
         },
         "/comment": {
             post: createComment
         },
-        "/comment/{id}": {
+        "/comment/{commentId}": {
             get: getComment,
             put: updateComment,
             delete: deleteComment
@@ -129,23 +168,23 @@ export const swaggerDocument = {
         "/change-password": {
             post: changePassword,
         },
-        "/user-info": {
+        "/user/info": {
             post: updateUserInfo,
         },
-        "/manage-user": {
+        "/user/manage": {
             post: manageUser
         },
-        "/follow": {
+        "/user/follow": {
             post: followUser
         },
-        "/user-photo/{filename}": {
+        "/user/photo/{filename}": {
             delete: deleteUserPhoto,
         },
-        "/user/{id}": {
+        "/user/{userId}": {
             delete: deleteUser,
-            put: updateLabel
+            // put: updateLabel
         },
-        "/follow/{id}": {
+        "/user/follow/{followId}": {
             get: checkIfIFollowUser,
             delete: unfollowUser
         },

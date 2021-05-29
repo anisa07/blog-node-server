@@ -5,9 +5,9 @@ import { auth } from '../utils/authMiddleware';
 
 const router = Router(); 
 
-router.put('/:id', auth, active, labelController.updateLabel);
+router.put('/:labelId', auth, active, labelController.updateLabel);
 
-router.delete('/:id', auth, active, labelController.deleteLabel);
+router.delete('/:labelId', auth, active, labelController.deleteLabel);
 
 router.post('/', auth, active, labelController.createLabel);
 
