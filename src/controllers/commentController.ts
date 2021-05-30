@@ -13,7 +13,7 @@ export const getCommentsData = async (query: { updatedAt?: any, size?: any, post
     const commentPage = Number(query.page) || 1;
     let data: PaginateResult<CommentModel>;
 
-    searchQuery.post = query.postId;
+    searchQuery.postId = query.postId;
 
     data = await commentService.findComments(searchQuery, commentPage, commentsListSize);
 

@@ -8,7 +8,7 @@ export const active = async (req: express.Request, res: express.Response, next: 
     let id = req.headers.id || req.body?.id;
     
     if (id) {
-        searchQuery = { _id: id as string }
+        searchQuery = { id: id as string }
     } else if (req.body?.email) {
         searchQuery = { email: req.body.email }
     }

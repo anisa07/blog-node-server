@@ -430,7 +430,7 @@ class UserController {
 
     async doIFollowUser(req: express.Request, res: express.Response) {
         const userId = req.headers.id as string;
-        const followId = req.params.id;
+        const followId = req.params.followId;
         const followUser = await userService.findUserByQuery({id: followId as string}) as UserModel;
 
         if(!userId) {

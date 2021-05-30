@@ -1,5 +1,5 @@
 import express from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 import {userService} from '../services/userService';
 import {PostModel} from '../models/Post';
 import {postService} from '../services/postService';
@@ -42,7 +42,7 @@ const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
         }
 
         if (allPostsData) {
-            const commentsCount = await commentService.countComments({post: post.id});
+            const commentsCount = await commentService.countComments({postId: post.id});
             return {
                 id: post.id,
                 authorId: post.authorId,
@@ -134,13 +134,22 @@ class PostController {
             authorId: post.authorId,
             filename: filename,
             title: title || post.title,
-            text: text || post.text
+            text: text || post.text,
         } as unknown as PostModel;
 
         try {
             await postService.updatePost(postId, updatePost);
+            const labelsInPost = await labelToPostService.findPostLabels(postId);
+            for (let l of labelsInPost) {
+                await labelToPostService.deleteLabelFromPost(l.labelId, postId);
+                const findLabelUsage = await labelToPostService.findByLabelId(l.labelId);
+                if (!findLabelUsage) {
+                    await labelService.deleteLabel({id: l.labelId});
+                }
+            }
             for (let l of (JSON.parse(labels) || [])) {
-                await labelToPostService.addLabelToPost({labelId: l.id, postId} as LabelToPostModel)
+                const id = uuidv4();
+                await labelToPostService.addLabelToPost({labelId: l.id, postId, id} as LabelToPostModel)
             }
             return res.status(200).send({
                 id: postId
@@ -187,7 +196,7 @@ class PostController {
         const newPost = {
             id: postId,
             filename,
-            author: userId,
+            authorId: userId,
             title,
             text,
         } as unknown as PostModel;
@@ -195,13 +204,15 @@ class PostController {
         try {
             await postService.createPost(newPost);
             for (let l of (JSON.parse(labels) || [])) {
-                await labelToPostService.addLabelToPost({labelId: l.id, postId} as LabelToPostModel)
+                const id = uuidv4();
+                await labelToPostService.addLabelToPost({labelId: l.id, postId, id} as LabelToPostModel)
             }
 
             return res.status(200).send({
                 id: postId
             })
         } catch (e) {
+            console.log(e)
             return res.status(500).send({
                 type: 'ERROR',
                 message: 'Error occurs during post creation'
@@ -273,7 +284,7 @@ class PostController {
         }
 
         let dir = sortDir === 'asc' ? 1 : -1;
-        let sortField: string | {[key:string]: any} = '-updatedAt';
+        let sortField: string | { [key: string]: any } = '-updatedAt';
         if (!!sortBy) {
             sortField = {[sortBy as string]: dir}
         }
@@ -329,7 +340,7 @@ class PostController {
                     updatedAt: {$gte: new Date(lastReviewDate)}
                 },
                 sort: '-updatedAt',
-                page:  Number(page) || 1,
+                page: Number(page) || 1,
                 size: Number(size) || POSTS_LIST_SIZE
             });
 

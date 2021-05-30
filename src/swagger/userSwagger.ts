@@ -318,7 +318,7 @@ export const manageUser = {
                         }
                     },
                     required: [
-                        "_id",
+                        "id",
                         "name"
                     ],
                 }

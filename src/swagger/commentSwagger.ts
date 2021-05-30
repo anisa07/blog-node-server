@@ -180,7 +180,7 @@ export const getComment = {
                     schema: {
                         type: "object",
                         properties: {
-                            _id: {
+                            id: {
                                 type: 'string'
                             },
                             text: {

@@ -8,12 +8,12 @@ export type LabelToPostModel = mongoose.Document & {
 
 const labelToPostSchema = new Schema({
         postId: {
-            type: Schema.Types.ObjectId,
-            ref: 'Post'
+            type: String,
+            required: true,
         },
         labelId: {
-            type: Schema.Types.ObjectId,
-            ref: 'Label'
+            type: String,
+            required: true,
         },
         id: {
             type: String,

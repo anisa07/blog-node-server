@@ -17,12 +17,12 @@ const likeSchema = new Schema({
             default: 0
         },
         userId: {
-            type: Schema.Types.ObjectId,
-            ref: 'User'
+            type: String,
+            required: true,
         },
         postId: {
-            type: Schema.Types.ObjectId,
-            ref: 'Post'
+            type: String,
+            required: true,
         },
     },
     {timestamps: true});

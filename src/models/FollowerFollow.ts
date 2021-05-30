@@ -8,12 +8,12 @@ export type FollowerFollowModel = mongoose.Document & {
 
 const FollowerFollowSchema = new Schema({
         followId: {
-            type: Schema.Types.ObjectId,
-            ref: 'User'
+            type: String,
+            required: true,
         },
         followerId: {
-            type: Schema.Types.ObjectId,
-            ref: 'User'
+            type: String,
+            required: true,
         },
         id: {
             type: String,

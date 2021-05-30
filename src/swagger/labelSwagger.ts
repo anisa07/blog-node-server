@@ -71,7 +71,7 @@ export const getLabels = {
                                 name: {
                                     type: 'string'
                                 },
-                                _id: {
+                                id: {
                                     type: 'string'
                                 }
                             }

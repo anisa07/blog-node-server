@@ -13,9 +13,8 @@ const saltSchema = new Schema({
             unique: true
         },
         userId: {
-            type: Schema.Types.ObjectId,
-            ref: 'User',
-            required: true
+            type: String,
+            required: true,
         },
         id: {
             type: String,

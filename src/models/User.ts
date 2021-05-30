@@ -63,10 +63,6 @@ export const userSchema = new Schema({
         lastReviewDate: {
             type: Date
         },
-        newPostsToRead: {
-            type: Schema.Types.ObjectId,
-            ref: 'Post'
-        },
     },
     {timestamps: true}
 );
