@@ -14,24 +14,24 @@ export const active = async (req: express.Request, res: express.Response, next: 
     }
 
     if (!searchQuery) {
-        return res.status(400).send({
+        return res.status(403).send({
             type: 'ERROR',
-            message: 'Payload is incorrect'
+            message: 'User is not active'
         });
     }
 
     const user = await userService.findUserByQuery(searchQuery);
     if (!user) {
-        return res.status(404).send({
+        return res.status(403).send({
             type: 'ERROR',
-            message: 'User not found'
+            message: 'User is not active'
         });
     }
 
     if (user.state !== STATE.ACTIVE) {
         return res.status(403).send({
             type: 'ERROR',
-            message: 'User is deleted or blocked'
+            message: 'User is not active'
         });
     }
 

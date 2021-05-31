@@ -17,6 +17,17 @@ import {POSTS_LIST_SIZE} from '../utils/constants';
 import {getCommentsData} from "./commentController";
 import {PaginateResult} from 'mongoose';
 
+const isIterable = (obj: any) => {
+    if (obj == null) {
+        return false;
+    }
+    return typeof obj[Symbol.iterator] === 'function';
+}
+
+const convertLabels = (labels: any) => {
+    return typeof labels === 'object' && isIterable(labels) ? labels : JSON.parse(labels);
+}
+
 const gatherPostData = async (post: PostModel, allPostsData?: boolean) => {
     if (post) {
         const user = await userService.findUserByQuery({id: post.authorId}) as UserModel;
@@ -139,18 +150,26 @@ class PostController {
 
         try {
             await postService.updatePost(postId, updatePost);
+            const convertedLabels = convertLabels(labels);
             const labelsInPost = await labelToPostService.findPostLabels(postId);
             for (let l of labelsInPost) {
-                await labelToPostService.deleteLabelFromPost(l.labelId, postId);
-                const findLabelUsage = await labelToPostService.findByLabelId(l.labelId);
-                if (!findLabelUsage) {
-                    await labelService.deleteLabel({id: l.labelId});
+                const inNewLabels = convertedLabels.findIndex((newLabel: any) => newLabel.id === l.labelId);
+                if(inNewLabels !== -1) {
+                    convertedLabels.splice(inNewLabels, 1);
+                } else {
+                    await labelToPostService.deleteLabelFromPost(l.labelId, postId);
+                    const findLabelUsage = await labelToPostService.findByLabelId(l.labelId);
+                    if (findLabelUsage.length === 0) {
+                        await labelService.deleteLabel({id: l.labelId});
+                    }
                 }
             }
-            for (let l of (JSON.parse(labels) || [])) {
+
+            for (let l of convertedLabels) {
                 const id = uuidv4();
                 await labelToPostService.addLabelToPost({labelId: l.id, postId, id} as LabelToPostModel)
             }
+
             return res.status(200).send({
                 id: postId
             })
@@ -203,7 +222,8 @@ class PostController {
 
         try {
             await postService.createPost(newPost);
-            for (let l of (JSON.parse(labels) || [])) {
+            const convertedLabels = convertLabels(labels);
+            for (let l of convertedLabels) {
                 const id = uuidv4();
                 await labelToPostService.addLabelToPost({labelId: l.id, postId, id} as LabelToPostModel)
             }

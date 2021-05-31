@@ -123,23 +123,23 @@ class UserController {
         if (!password || !password.trim() || !email || !email.trim()) {
             return res.status(400).send({
                 type: 'ERROR',
-                message: 'Invalid data'
+                message: 'Password or email is incorrect'
             });
         }
 
         const user = await userService.findUserByQuery({ email }) as UserModel;
 
         if (!user) {
-            return res.status(404).send({
+            return res.status(400).send({
                 type: 'ERROR',
-                message: 'User not found'
+                message: 'Password or email is incorrect'
             });
         }
 
         const compareResult = await bcrypt.compare(password, user.password);
 
         if (!compareResult) {
-            return res.status(401).send({
+            return res.status(400).send({
                 type: 'ERROR',
                 message: 'Password or email is incorrect'
             });
@@ -424,7 +424,8 @@ class UserController {
             });
         }
 
-        await followerFollowService.follow({followId: follow, followerId: userId} as FollowerFollowModel);
+        const id = uuidv4();
+        await followerFollowService.follow({followId: follow, followerId: userId, id} as FollowerFollowModel);
         return res.status(200).send({});
     }
 

@@ -128,9 +128,7 @@ class CommentController {
 
     async deleteComment(req: express.Request, res: express.Response) {
         const commentId = req.params.commentId as string;
-        const userId = req.headers.id as string;
-
-        await commentService.deleteComment({id: commentId, userId: userId});
+        await commentService.deleteComment({id: commentId});
         return res.status(200).send({
             commentId
         })
