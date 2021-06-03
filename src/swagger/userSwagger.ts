@@ -1,5 +1,6 @@
 import {activeErrors, headerIdOptional, headerIdRequired, security} from "./commonSwagger";
 import {Posts, Users} from "./objects";
+import {strict} from "assert";
 
 export const updateUserInfo = {
     tags: ['User'],
@@ -94,6 +95,57 @@ export const getUsersBy = {
             "content": {
                 "application/json": {
                     schema: Users
+                }
+            }
+        }
+    }
+}
+
+export const getAllFollowUsers = {
+    tags: ['User'],
+    summary: "Returns all users current user follows",
+    operationId: 'getAllFollowUsers',
+    security,
+    parameters: [
+        headerIdRequired,
+        {
+            "name": "page",
+            "in": "query",
+            "description": "follow users list page, by default = 1",
+            "required": false,
+            "schema": {
+                "type": "integer"
+            }
+        },
+        {
+            "name": "size",
+            "in": "query",
+            "description": "follow users list size, by default = 10",
+            "required": false,
+            "schema": {
+                "type": "integer"
+            }
+        },
+    ],
+    responses: {
+        "200": {
+            description: "List of users",
+            "content": {
+                "application/json": {
+                    schema: {
+                        type: "array",
+                        "items": {
+                            type: "object",
+                            properties: {
+                                id: {
+                                    type: "string"
+                                },
+                                name: {
+                                    type: "string"
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

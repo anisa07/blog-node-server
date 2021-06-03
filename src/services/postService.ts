@@ -6,7 +6,6 @@ interface FindPostBy {
     sort?: { [key: string]: any } | string,
     page?: number,
     size: number,
-    searchBy?: string
 }
 
 class PostService {
@@ -18,11 +17,7 @@ class PostService {
         } catch (e) {
             regex = new RegExp("");
         }
-        if (findBy.searchBy) {
-            regexObj = {title: {$regex: regex}}
-        } else {
-            regexObj = {$or: [{text: {$regex: regex}}, {title: {$regex: regex}}]}
-        }
+        regexObj = {$or: [{text: {$regex: regex}}, {title: {$regex: regex}}]}
 
         return Post.paginate({
             ...findBy.query, ...regexObj

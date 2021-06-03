@@ -1,4 +1,5 @@
 import {FollowerFollow, FollowerFollowModel} from '../models/FollowerFollow';
+import {Post} from "../models/Post";
 
 class FollowerFollowService {
     findFollow(id: string){
@@ -9,6 +10,15 @@ class FollowerFollowService {
 
     findFollower(id: string, followerId: string){
         return FollowerFollow.findOne({$and: [{followId: id}, {followerId}]})
+    }
+
+    findAllFollow(followerId: string, page: number = 1, size: number = 10) {
+        return FollowerFollow.paginate({
+            followerId
+        },{
+            page,
+            limit: size
+        })
     }
 
     follow(followFollower: FollowerFollowModel){

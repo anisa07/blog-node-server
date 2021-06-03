@@ -8,7 +8,7 @@ import {
     unfollowUser,
     showFollowPosts,
     checkIfIFollowUser,
-    getUsersBy
+    getUsersBy, getAllFollowUsers
 } from "./swagger/userSwagger";
 import {
     Post,
@@ -188,5 +188,8 @@ export const swaggerDocument = {
             get: checkIfIFollowUser,
             delete: unfollowUser
         },
+        "/user/all/follow": {
+            get: getAllFollowUsers
+        }
     },
 }

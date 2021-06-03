@@ -22,6 +22,7 @@ router.post('/follow', auth, active, userController.followUser);
 router.delete('/follow/:followId', auth, active, userController.unFollowUser);
 router.get('/follow/posts', auth, active, postController.showFollowPosts);
 router.get('/follow/:followId', userController.doIFollowUser);
+router.get('/all/follow', auth, active, postController.showFollowUsers)
 
 // user
 router.get('/', auth, active, userController.getUsersBy);

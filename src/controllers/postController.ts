@@ -154,7 +154,7 @@ class PostController {
             const labelsInPost = await labelToPostService.findPostLabels(postId);
             for (let l of labelsInPost) {
                 const inNewLabels = convertedLabels.findIndex((newLabel: any) => newLabel.id === l.labelId);
-                if(inNewLabels !== -1) {
+                if (inNewLabels !== -1) {
                     convertedLabels.splice(inNewLabels, 1);
                 } else {
                     await labelToPostService.deleteLabelFromPost(l.labelId, postId);
@@ -276,20 +276,7 @@ class PostController {
         const postsPage = Number(page) || 1;
         let data: PaginateResult<PostModel>;
 
-        if (searchBy === "author" && searchText) {
-            const regex = new RegExp(`.*${searchText}.*`, 'i');
-            const user = await userService.findUserByQuery({name: {$regex: regex}});
-            if (!user) {
-                return res.status(200).send({
-                    posts: [],
-                    hasNextPage: false,
-                    hasPreviousPage: false,
-                    totalDocs: 0,
-                    totalPages: 0
-                })
-            }
-            searchQuery.author = user.id;
-        } else if (authorId) {
+        if (authorId) {
             const user = await userService.findUserByQuery({id: authorId as string});
             if (!user) {
                 res.status(200).send({
@@ -309,14 +296,13 @@ class PostController {
             sortField = {title: dir}
         }
 
-        if (searchText && searchBy !== "author") {
+        if (searchText) {
             data = await postService.findPostsByText({
                 query: searchQuery,
                 sort: sortField,
                 page: postsPage,
                 size: postsListSize,
                 text: searchText as string,
-                searchBy: searchBy === 'title' ? 'title' : ''
             });
         } else {
             data = await postService.findPostsBy({
@@ -375,6 +361,27 @@ class PostController {
             hasPreviousPage: followPosts.hasPrevPage,
             totalDocs: followPosts.totalDocs,
             totalPages: followPosts.totalPages
+        })
+    }
+
+    async showFollowUsers(req: express.Request, res: express.Response) {
+        const {size, page} = req.query;
+        const userId = req.headers.id as string;
+        const followList = await followerFollowService.findAllFollow(userId, Number(page) || 1, Number(size) || POSTS_LIST_SIZE);
+        const users: Record<string, string>[] = [];
+        for (let follow of followList.docs) {
+            const followUser = await userService.findUserByQuery({id: follow.followId}) as UserModel;
+            users.push({
+                id: followUser.id,
+                name: followUser.name
+            });
+        }
+        return res.status(200).send({
+            users,
+            hasNextPage: followList.hasNextPage,
+            hasPreviousPage: followList.hasPrevPage,
+            totalDocs: followList.totalDocs,
+            totalPages: followList.totalPages
         })
     }
 }

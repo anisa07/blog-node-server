@@ -1,4 +1,5 @@
 import mongoose, {Schema} from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
 
 export type FollowerFollowModel = mongoose.Document & {
     followId: string,
@@ -22,6 +23,7 @@ const FollowerFollowSchema = new Schema({
     },
     {timestamps: true});
 
+FollowerFollowSchema.plugin(mongoosePaginate);
 const FollowerFollow = mongoose.model('FollowerFollow', FollowerFollowSchema);
 
 export {
