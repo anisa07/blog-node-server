@@ -12,8 +12,12 @@ interface FindPostBy {
 class PostService {
     findPostsByText(findBy: FindPostBy) {
         let regexObj;
-        const regex = new RegExp(`.*${findBy.text}.*`, 'i');
-
+        let regex;
+        try {
+            regex = new RegExp(`.*${findBy.text}.*`, 'i')
+        } catch (e) {
+            regex = new RegExp("");
+        }
         if (findBy.searchBy) {
             regexObj = {title: {$regex: regex}}
         } else {

@@ -303,10 +303,10 @@ class PostController {
             searchQuery.labelsId = parsedLabelsIds;
         }
 
-        let dir = sortDir === 'asc' ? 1 : -1;
+        let dir = sortDir === 'desc' ? -1 : 1;
         let sortField: string | { [key: string]: any } = '-updatedAt';
-        if (!!sortBy) {
-            sortField = {[sortBy as string]: dir}
+        if (sortBy === 'alphabet') {
+            sortField = {title: dir}
         }
 
         if (searchText && searchBy !== "author") {
