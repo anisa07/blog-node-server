@@ -232,7 +232,6 @@ class PostController {
                 id: postId
             })
         } catch (e) {
-            console.log(e)
             return res.status(500).send({
                 type: 'ERROR',
                 message: 'Error occurs during post creation'
@@ -268,7 +267,7 @@ class PostController {
     }
 
     async readPosts(req: express.Request, res: express.Response) {
-        const {size, labelIds, authorId, searchText, sortBy, sortDir, page, searchBy} = req.query;
+        const {size, labelIds, authorId, searchText, sortBy, sortDir, page} = req.query;
         const searchQuery: any = {}
         const parsedLabelsIds: string[] = labelIds ? (labelIds as string).split(',') : [];
         const postsData: any[] = [];
@@ -283,7 +282,7 @@ class PostController {
                     posts: []
                 })
             }
-            searchQuery.author = authorId;
+            searchQuery.authorId = authorId;
         }
 
         if (parsedLabelsIds && parsedLabelsIds.length > 0) {
