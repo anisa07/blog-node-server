@@ -57,7 +57,7 @@ export const swaggerDocument = {
     info: {
         version: '1.0.0',
         title: 'APIs Document',
-        description: `Download [swagger.json](${process.env.ORIGIN}:${process.env.PORT}/${process.env.API_VERSION}/api-docs/download/swagger/json)`,
+        description: `Download [swagger.json](${process.env.SERVER_URL}/${process.env.API_VERSION}/api-docs/download/swagger/json)`,
         termsOfService: '',
         contact: {
             name: '',
@@ -71,7 +71,7 @@ export const swaggerDocument = {
     },
     servers: [
         {
-            url: `${process.env.ORIGIN}:${process.env.PORT}/${process.env.API_VERSION}`,
+            url: `${process.env.SERVER_URL}/${process.env.API_VERSION}`,
             description: 'Local server'
         }
     ],
