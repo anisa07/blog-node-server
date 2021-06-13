@@ -12,6 +12,8 @@ import apiRouter from './routes/api';
 import connectDb from './dbs/mongoDb';
 import redisClient from './dbs/redisDb';
 import {clientErrorHandler, logErrors} from "./utils/errorsMiddleware";
+import path from "path";
+import * as Process from "process";
 
 redisClient.on("error", (error) => {
     console.error(`Redis error: ${error}`);
@@ -25,7 +27,8 @@ const app = express();
 app.use(cors({
     origin: process.env.CLIENT_URL
 }));
-
+app.use(express.static(path.resolve(Process.env.CLIENT_APP_PATH as string)));
+app.set('view engine', 'pug');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(`/${process.env.API_VERSION}`, authRouter);
@@ -35,6 +38,9 @@ app.use(`/${process.env.API_VERSION}/post`, postRouter);
 app.use(`/${process.env.API_VERSION}/label`, labelRouter);
 app.use(`/${process.env.API_VERSION}/comment`, commentRouter);
 app.use(`/${process.env.API_VERSION}/like`, likeRouter);
+app.get('/**', (req, res) => {
+    res.sendFile(path.resolve(`${Process.env.CLIENT_APP_PATH}/index.html`))
+});
 app.use(logErrors);
 app.use(clientErrorHandler);
 
